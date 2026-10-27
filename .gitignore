@@ -1,0 +1,4 @@
+# saída da auditoria: tem dado de lead (nome, telefone, conversa)
+auditoria/saida/
+*.token
+.env*
