@@ -1,0 +1,571 @@
+<title>Auditoria Kommo Leonora B2B</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de consultoria em coluna única de leitura (~880px), cabeçalho com a marca Control Gestão,
+   índice fixo no topo, seções de diagnóstico e um plano numerado por prioridade no fim. */
+:root {
+  --bg: #F6F7F9;
+  --surface: #FFFFFF;
+  --ink: #17202C;
+  --ink-2: #455163;
+  --muted: #6A7484;
+  --line: #E1E5EB;
+  --band: #EEF1F5;
+  --brand: #27486F;
+  --accent: #EF4E22;
+  --chart: #2563AB;
+  --good: #1D7A4C; --good-bg: #E5F4EC;
+  --warn: #8F5300; --warn-bg: #FBF0DC;
+  --bad: #B42318;  --bad-bg: #FBE7E5;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F141B; --surface: #141A22; --ink: #E7EBF1; --ink-2: #B6C0CD; --muted: #8B95A4;
+    --line: #253041; --band: #1B2330; --brand: #93B4DC; --accent: #FF7A4F; --chart: #4F8BD6;
+    --good: #5BCB95; --good-bg: #12291F; --warn: #E8AE4A; --warn-bg: #2D2312; --bad: #F2796A; --bad-bg: #331815;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F141B; --surface: #141A22; --ink: #E7EBF1; --ink-2: #B6C0CD; --muted: #8B95A4;
+  --line: #253041; --band: #1B2330; --brand: #93B4DC; --accent: #FF7A4F; --chart: #4F8BD6;
+  --good: #5BCB95; --good-bg: #12291F; --warn: #E8AE4A; --warn-bg: #2D2312; --bad: #F2796A; --bad-bg: #331815;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 880px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); color: var(--ink); text-wrap: balance; margin: 0; }
+h2 { font-size: 1.65rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.12rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--brand); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-data); font-size: 0.86em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.92rem; }
+
+/* cabeçalho */
+.masthead { padding-block: 32px 24px; display: grid; gap: 20px; border-bottom: 1px solid var(--line); }
+.logo { display: inline-flex; background: #FFFFFF; border-radius: 8px; padding: 8px 12px; width: fit-content; }
+.logo img { height: 34px; width: auto; display: block; }
+.eyebrow { font-family: var(--font-data); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.masthead h1 { font-size: clamp(2.2rem, 6vw, 3.2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+.masthead h1 span { color: var(--brand); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--ink-2); font-size: 0.95rem; }
+
+/* índice */
+.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-left, 0px)); }
+.toc ol { list-style: none; margin: 0 auto; padding: 0; max-width: 880px; display: flex; gap: 6px 18px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.toc a { text-decoration: none; color: var(--ink-2); font-size: 0.93rem; font-weight: 600; }
+.toc a:hover { color: var(--brand); }
+
+section { padding-block: 44px 8px; display: grid; gap: 18px; }
+section > p, .prose { max-width: 68ch; color: var(--ink-2); }
+.lead { font-size: 1.12rem; color: var(--ink); max-width: 68ch; }
+
+/* números de topo */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 4px; align-content: start; }
+.tile .label { font-size: 0.9rem; color: var(--ink-2); }
+.tile .value { font-family: var(--font-body); font-weight: 700; font-size: 2rem; line-height: 1.1; color: var(--ink); }
+.tile .note { font-size: 0.86rem; color: var(--muted); }
+
+/* tabelas */
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.94rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--ink-2); font-size: 0.84rem; background: var(--band); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.dim { color: var(--muted); }
+.grp td { background: var(--band); font-weight: 600; color: var(--ink-2); font-size: 0.84rem; }
+
+/* status */
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.chip svg { width: 11px; height: 11px; flex: none; }
+.chip.good { color: var(--good); background: var(--good-bg); }
+.chip.warn { color: var(--warn); background: var(--warn-bg); }
+.chip.bad { color: var(--bad); background: var(--bad-bg); }
+
+/* fluxo */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: passo; }
+.flow li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; position: relative; padding-bottom: 18px; }
+.flow li::before { counter-increment: passo; content: counter(passo); width: 34px; height: 34px; border-radius: 50%; background: var(--brand); color: var(--surface); font-family: var(--font-display); font-weight: 700; display: grid; place-items: center; font-size: 0.95rem; }
+.flow li:not(:last-child)::after { content: ""; position: absolute; left: 16px; top: 38px; bottom: 2px; width: 2px; background: var(--line); }
+.flow h3 { font-size: 1.02rem; margin-bottom: 2px; }
+.flow p { color: var(--ink-2); font-size: 0.97rem; max-width: 64ch; }
+.flow .tag { font-family: var(--font-data); font-size: 0.8rem; color: var(--brand); }
+
+/* gráficos */
+.figure { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.figure .cap { display: flex; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; align-items: baseline; }
+.figure .cap strong { font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.chart { position: relative; min-height: 190px; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { font-family: var(--font-data); font-size: 11px; fill: var(--muted); }
+.chart .val { fill: var(--ink); font-weight: 500; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .bar { fill: var(--chart); }
+.chart .bandrect { fill: var(--band); }
+.chart .hit { fill: transparent; cursor: default; }
+.chart .hit:hover + .bar, .chart .bar.on { opacity: 0.8; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 0.82rem; padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -8px; }
+details.data summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; width: fit-content; }
+details.data table { margin-top: 8px; font-size: 0.85rem; }
+
+/* barras de motivo */
+.bars { display: grid; gap: 4px; }
+.bars .row { display: grid; grid-template-columns: minmax(0, 15rem) 1fr 4.2rem; gap: 10px; align-items: center; font-size: 0.93rem; }
+.bars .row .name { overflow-wrap: anywhere; color: var(--ink); }
+.bars .track { height: 14px; }
+.bars .fill { height: 14px; background: var(--chart); border-radius: 0 4px 4px 0; min-width: 2px; }
+.bars .row .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.bars .head { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-weight: 700; font-size: 0.9rem; color: var(--ink); }
+.bars .head:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.bars .head span:last-child { font-variant-numeric: tabular-nums; color: var(--ink-2); font-weight: 600; }
+@media (max-width: 520px) { .bars .row { grid-template-columns: minmax(0, 9.5rem) 1fr 3.6rem; font-size: 0.86rem; } }
+
+/* destaques */
+.callout { border-left: 3px solid var(--accent); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; color: var(--ink-2); max-width: 72ch; }
+.callout strong { color: var(--ink); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.facts.four { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+@media (max-width: 400px) { .facts.four { grid-template-columns: 1fr; } }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.fact h3 { font-size: 1rem; }
+.fact p { color: var(--ink-2); font-size: 0.95rem; }
+.fact .big { font-weight: 700; font-size: 1.5rem; color: var(--ink); line-height: 1.1; }
+
+/* plano */
+.phase { display: grid; gap: 12px; }
+.phase > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding-top: 10px; }
+.phase > header h3 { font-size: 1.25rem; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; grid-template-columns: 40px 1fr; gap: 6px 14px; }
+.step .n { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; color: var(--brand); line-height: 1.1; grid-row: span 3; }
+.step h4 { margin: 0; font-family: var(--font-display); font-size: 1.06rem; font-weight: 600; color: var(--ink); text-wrap: balance; }
+.step .body { display: grid; gap: 6px; color: var(--ink-2); font-size: 0.97rem; min-width: 0; }
+.step .body b { color: var(--ink); font-weight: 600; }
+.step .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.step .tags span { font-size: 0.8rem; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; color: var(--ink-2); }
+@media (max-width: 520px) { .step { grid-template-columns: 1fr; } .step .n { grid-row: auto; } }
+
+ul.clean { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(--ink-2); max-width: 70ch; }
+ul.clean li::marker { color: var(--muted); }
+footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; display: grid; gap: 6px; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <span class="logo"><img src="logo-control-gestao.png" alt="Control Gestão"></span>
+    <div style="display:grid;gap:10px">
+      <span class="eyebrow">Auditoria da conta Kommo</span>
+      <h1>Leonora <span>B2B</span></h1>
+    </div>
+    <div class="meta">
+      <span class="mono">leonorab2b.kommo.com</span>
+      <span>Período analisado: 29/07 a 27/10/2026 (90 dias)</span>
+      <span>Gerado em 27/10/2026</span>
+      <span>Leitura pela API, sem nenhuma alteração na conta</span>
+    </div>
+  </header>
+</div>
+
+<nav class="toc" aria-label="Seções">
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#operacao">Como funciona</a></li>
+    <li><a href="#vendas">Vendas</a></li>
+    <li><a href="#perdas">Perdas</a></li>
+    <li><a href="#atendimento">Atendimento</a></li>
+    <li><a href="#rotina">Rotina e carteira</a></li>
+    <li><a href="#cadastro">Cadastro e rastreio</a></li>
+    <li><a href="#melhorias">Plano de melhorias</a></li>
+    <li><a href="#notas">Notas</a></li>
+  </ol>
+</nav>
+
+<main class="wrap">
+
+<section id="resumo">
+  <h2>Resumo</h2>
+  <p class="lead">A operação comercial funciona: o WhatsApp é respondido rápido, cerca de um em cada cinco leads novos vira pedido e a base de clientes gera mais da metade das vendas. O que não funciona é o Kommo como retrato da operação. Metade dos leads abertos está parada há mais de um mês, 88% das tarefas estão vencidas e a origem dos leads não é registrada.</p>
+
+  <div class="tiles">
+    <div class="tile"><span class="label">Leads novos em 90 dias</span><span class="value">4.320</span><span class="note">Média semanal caiu de 398 em agosto para 256 em outubro</span></div>
+    <div class="tile"><span class="label">Vendas registradas</span><span class="value">821</span><span class="note">R$ 3,7 milhões em 673 leads, ticket de R$ 5,5 mil</span></div>
+    <div class="tile"><span class="label">Lead novo que vira venda</span><span class="value">20% a 23%</span><span class="note">Por safra de criação, estável nos três meses</span></div>
+    <div class="tile"><span class="label">Primeira resposta da equipe</span><span class="value">6 min</span><span class="note">Mediana no WhatsApp; 47% respondidas em até 5 min</span></div>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Área</th><th>Situação</th><th>O que os dados mostram</th></tr></thead>
+      <tbody>
+        <tr><td>Atendimento no WhatsApp</td><td><span class="chip good"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>Bom</span></td><td>Mediana de 6 min no horário comercial. Fora do horário, um quarto das conversas espera mais de 8 horas.</td></tr>
+        <tr><td>Conversão de lead novo</td><td><span class="chip good"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>Bom</span></td><td>20% a 23% por safra. A taxa de ganho do Kommo (10,9%) está distorcida pela limpeza de base de outubro.</td></tr>
+        <tr><td>Rotina e tarefas</td><td><span class="chip bad"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>Crítico</span></td><td>919 de 1.044 tarefas vencidas e 95% dos leads abertos sem próxima ação.</td></tr>
+        <tr><td>Carteira e usuários</td><td><span class="chip bad"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>Crítico</span></td><td>55% dos leads abertos estão no usuário genérico "Adm" e outros 2.206 com usuários desativados.</td></tr>
+        <tr><td>Estrutura de funis</td><td><span class="chip warn"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5L11 10.5H1z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Atenção</span></td><td>28 funis, 7 recebem leads. 1.407 leads abertos ficaram escondidos em funis arquivados.</td></tr>
+        <tr><td>Medição de vendas</td><td><span class="chip warn"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5L11 10.5H1z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Atenção</span></td><td>O mesmo lead é reaproveitado a cada pedido. Valor, ciclo e taxa por vendedor ficam imprecisos.</td></tr>
+        <tr><td>Origem e cadastro</td><td><span class="chip bad"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>Crítico</span></td><td>Origem vazia em 74% dos leads novos, nenhuma UTM gravada e 38% dos contatos com telefone repetido.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout"><strong>Por onde começar:</strong> responder as 181 conversas de leads abertos que estão sem resposta há mais de 24 horas, tirar os leads do "Adm" e dos usuários desativados, e zerar as tarefas vencidas há mais de 30 dias. O <a href="#melhorias">plano completo</a> tem 12 ações em três fases.</div>
+</section>
+
+<section id="operacao">
+  <h2>Como a conta funciona hoje</h2>
+  <p>O caminho abaixo foi reconstruído a partir das mudanças de etapa registradas nos últimos 64 dias. Os números entre parênteses são quantas vezes cada passagem aconteceu nesse período.</p>
+
+  <ol class="flow">
+    <li><div><h3>O lead chega pelo WhatsApp ou pelo site</h3><p>Uma automação cria o lead em <b>Pré-Vendas · Entrada de leads (CNPJ)</b>. 97% dos 4.320 leads do período foram criados por automação. No WhatsApp, 92% das mensagens passam pela conexão por QR code e 8% pelo WhatsApp oficial (API da Meta).</p></div></li>
+    <li><div><h3>A automação classifica a região e distribui</h3><p>Entrada (CNPJ) → Entrada (Região) <span class="tag">1.340</span> → Qualificação/Distribuição 1 <span class="tag">1.215</span>. A integração da Control Gestão trocou o responsável de leads, contatos e tarefas 12.248 vezes em 21 dias.</p></div></li>
+    <li><div><h3>Vendedor ou SDR assume a conversa</h3><p>Distribuição → Atendimento iniciado vendedor <span class="tag">888</span>. Desde 15/10 existe também o caminho Distribuição → Contato SDR <span class="tag">274</span>, com Andreia e Simone. As etapas Descoberta e Qualificação estão vazias: os SDRs passam direto de Contato SDR para Qualificado <span class="tag">56</span>.</p></div></li>
+    <li><div><h3>A negociação segue no Funil de consultores</h3><p>Atendimento iniciado vendedor → Negociação <span class="tag">306</span>. A automação também leva leads qualificados para a distribuição de consultores <span class="tag">148</span>. O funil está em uso desde 07/10 e já tem 431 leads abertos.</p></div></li>
+    <li><div><h3>Venda ganha volta para a base</h3><p>Depois do ganho, a automação devolve o mesmo lead para <b>Clientes da base · Base de clientes</b> <span class="tag">515</span>. Quando o cliente volta a escrever num lead perdido, a automação reabre o lead em Pré-Vendas <span class="tag">476</span>.</p></div></li>
+    <li><div><h3>A recompra acontece em Clientes da base</h3><p>Base de clientes → interagindo ou Demanda identificada <span class="tag">531</span> → Novo pedido → Venda ganha <span class="tag">197</span>. É o funil que mais vende.</p></div></li>
+  </ol>
+
+  <h3>Os 28 funis</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Funil</th><th class="r">Abertos</th><th class="r">Leads novos 90d</th><th class="r">Vendas 90d</th><th>Leitura</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="5">Em uso (recebem leads)</td></tr>
+        <tr><td>Atendimento iniciado &gt; Pré-Vendas</td><td class="r">918</td><td class="r">3.048</td><td class="r">304</td><td>Porta de entrada. 548 leads presos em "Entrada de leads (CNPJ)", com idade mediana de 529 dias.</td></tr>
+        <tr><td>Clientes da base</td><td class="r">6.732</td><td class="r">672</td><td class="r">462</td><td>Recompra. 5.552 clientes parados em "Base de clientes".</td></tr>
+        <tr><td>Funil de consultores</td><td class="r">431</td><td class="r">492</td><td class="r">48</td><td>Em uso desde 07/10. 300 leads em Negociação, só 81 dos 431 com valor preenchido.</td></tr>
+        <tr><td>Feira Escolar</td><td class="r">0</td><td class="r">45</td><td class="r">5</td><td>Evento sazonal, sem pendências.</td></tr>
+        <tr><td>VILHENA / MANAUS</td><td class="r">189</td><td class="r">40</td><td class="r">0</td><td>147 leads em "Feedback de atendimento 24h", 105 deles sem atualização há mais de 30 dias.</td></tr>
+        <tr><td>SDR - Reativação</td><td class="r">26</td><td class="r">22</td><td class="r">0</td><td>Recente, ainda com pouco volume.</td></tr>
+        <tr><td>Abrin</td><td class="r">14</td><td class="r">2</td><td class="r">0</td><td>Feira, quase sem movimento.</td></tr>
+        <tr class="grp"><td colspan="5">Parados (nenhum lead novo em 90 dias)</td></tr>
+        <tr><td>Nutrição (parou de responder)</td><td class="r">2.342</td><td class="r">0</td><td class="r">0</td><td>A cadência D0, D1, D2… parou. Última atualização mediana há 413 dias.</td></tr>
+        <tr><td>Funil de Abertura</td><td class="r">2.274</td><td class="r">0</td><td class="r">0</td><td>2.099 em "PAROU NO BOT".</td></tr>
+        <tr><td>Disparos Antigos</td><td class="r">270</td><td class="r">0</td><td class="r">0</td><td>Lista de disparo antiga.</td></tr>
+        <tr><td>Campanha Clientes Inativos</td><td class="r">165</td><td class="r">0</td><td class="r">2</td><td>Todos em "sem interesse - nutrição".</td></tr>
+        <tr class="grp"><td colspan="5">Arquivados com leads abertos</td></tr>
+        <tr><td>Funil de ação de vendas</td><td class="r">1.036</td><td class="r">0</td><td class="r">0</td><td rowspan="3">Funil arquivado não aparece na tela de leads, mas os leads continuam abertos e contam como carteira.</td></tr>
+        <tr><td>Ação de vendas - qualificar</td><td class="r">370</td><td class="r">0</td><td class="r">0</td></tr>
+        <tr><td>Vendas 1.0</td><td class="r">1</td><td class="r">0</td><td class="r">0</td></tr>
+        <tr class="grp"><td colspan="5">Vazios ou de teste</td></tr>
+        <tr><td colspan="5" class="dim">teste · vendas exemplo · carteira exemplo · Pedido em andamento · Prospecção Clientes · CS - Sucesso do Cliente · Redes Sociais · Funil de leads parou no bot · e seis arquivados sem leads abertos (Funil de Retenção, Funil de Suporte, Funil de Entrada, Nutrição Quentes, Feira Abrin 2025 Geovane e Ismael)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="vendas">
+  <h2>Vendas e conversão</h2>
+  <p>As vendas foram contadas pelo registro de entrada na etapa "Venda ganha". A etapa atual do lead não serve para isso nesta conta, porque a automação tira o lead de "Venda ganha" logo depois do fechamento.</p>
+
+  <div class="pair">
+    <div class="figure">
+      <div class="cap"><strong>Leads novos por semana</strong><span class="muted small">semanas completas, 03/08 a 19/10</span></div>
+      <div class="chart" id="ch-leads" role="img" aria-label="Leads novos por semana, de 394 na semana de 03/08 para 258 na semana de 19/10"></div>
+      <details class="data"><summary>Ver tabela</summary><div class="tbl"><table id="tb-semanas"></table></div></details>
+    </div>
+    <div class="figure">
+      <div class="cap"><strong>Vendas por semana</strong><span class="muted small">mesmas semanas</span></div>
+      <div class="chart" id="ch-vendas" role="img" aria-label="Vendas por semana, entre 17 e 124, com picos nas semanas de 10/08 e 21/09"></div>
+    </div>
+  </div>
+
+  <div class="facts">
+    <div class="fact"><h3>A entrada de leads caiu um terço</h3><p>De 398 por semana em agosto para 256 em outubro. As vendas de cliente novo caíram junto (130 em setembro, 88 até 27/10), então a conversão se manteve. Vale cruzar com o investimento em mídia e com a sazonalidade escolar.</p></div>
+    <div class="fact"><h3>Picos de venda em semanas isoladas</h3><p>As semanas de 10/08 (124) e 21/09 (118) concentram vendas. Pode ser sazonalidade ou baixa de pedidos em lote no Kommo. Se for lote, o Kommo atrasa o retrato de quem vendeu e quando.</p></div>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Funil</th><th class="r">Vendas</th><th class="r">Valor</th><th class="r">Ticket</th><th class="r">Taxa de ganho</th><th class="r">Dias até a venda</th></tr></thead>
+      <tbody>
+        <tr><td>Clientes da base</td><td class="r">462</td><td class="r">R$ 2,36 mi</td><td class="r">R$ 5.992</td><td class="r">34%</td><td class="r">183</td></tr>
+        <tr><td>Pré-Vendas</td><td class="r">304</td><td class="r">R$ 1,45 mi</td><td class="r">R$ 5.200</td><td class="r">5%</td><td class="r">27</td></tr>
+        <tr><td>Funil de consultores</td><td class="r">48</td><td class="r">R$ 142 mil</td><td class="r">R$ 3.016</td><td class="r">21%</td><td class="r">13</td></tr>
+        <tr><td>Feira Escolar</td><td class="r">5</td><td class="r">R$ 31 mil</td><td class="r">R$ 6.267</td><td class="r">9%</td><td class="r">12</td></tr>
+        <tr><td>Campanha Clientes Inativos</td><td class="r">2</td><td class="r">R$ 10 mil</td><td class="r">R$ 4.826</td><td class="r">1%</td><td class="r">27</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Dias até a venda: mediana entre a criação do lead e o ganho. Em Clientes da base o número é alto porque o lead é o mesmo há anos. A taxa de Pré-Vendas inclui a limpeza de outubro.</p>
+
+  <div class="callout"><strong>Três taxas de ganho para o mesmo período.</strong> Pelo Kommo, 10,9%. Tirando os dias de fechamento em massa, 19,2%. Acompanhando cada safra de leads novos até virar pedido, 20% a 23%. A última é a que mede a operação, e é a que recomendamos acompanhar.</div>
+
+  <h3>Vendas por pessoa</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Pessoa</th><th class="r">Vendas marcadas</th><th class="r">Valor</th><th class="r">Leads abertos</th></tr></thead>
+      <tbody>
+        <tr><td>Ana Paula</td><td class="r">244</td><td class="r">R$ 1,09 mi</td><td class="r">288</td></tr>
+        <tr><td>Ismael Caetano</td><td class="r">220</td><td class="r">R$ 1,28 mi</td><td class="r">2.923</td></tr>
+        <tr><td>Drielly Gusmao</td><td class="r">140</td><td class="r">R$ 679 mil</td><td class="r">105</td></tr>
+        <tr><td>Samuel</td><td class="r">124</td><td class="r">R$ 498 mil</td><td class="r">163</td></tr>
+        <tr><td>Jessica</td><td class="r">91</td><td class="r">R$ 184 mil</td><td class="r">456</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Contamos quem moveu o lead para "Venda ganha". A taxa de ganho por pessoa ficou de fora porque a limpeza de outubro foi feita por Ismael e pelo "Adm" e distorce a comparação.</p>
+</section>
+
+<section id="perdas">
+  <h2>Por que os leads são perdidos</h2>
+  <p>6.290 leads foram perdidos no período. O motivo é registrado no campo próprio "Motivo de perda", preenchido em 98% dos casos. O motivo nativo da Kommo quase não é usado (3,7%). Agrupamos as 30 opções do campo pelo que elas significam para a operação.</p>
+
+  <div class="figure">
+    <div class="bars" id="motivos"></div>
+  </div>
+
+  <div class="facts">
+    <div class="fact"><span class="big">2.030</span><h3>leads fechados em três dias</h3><p>Entre 05 e 07/10, Ismael e o "Adm" perderam em lote leads com idade mediana de 229 dias. A limpeza era necessária, mas ficou com os motivos do dia a dia e por isso derruba a taxa de ganho do trimestre.</p></div>
+    <div class="fact"><span class="big">1.065</span><h3>perdas que não eram perda</h3><p>607 marcadas como "Venda Futura" são oportunidades adiadas e deveriam ir para nutrição com data de retorno. Outras 458 eram dúvida, SAC, financeiro ou spam, ou seja, atendimento que nunca foi oportunidade de venda.</p></div>
+    <div class="fact"><span class="big">46%</span><h3>dos "Sem retorno" com uma tentativa ou menos</h3><p>Nas perdas por "Sem retorno" da segunda quinzena de outubro, quase metade recebeu no máximo uma mensagem depois da última resposta do cliente. Amostra pequena (50 leads), mas indica que falta uma regra mínima de follow-up antes de perder.</p></div>
+  </div>
+</section>
+
+<section id="atendimento">
+  <h2>Atendimento no WhatsApp</h2>
+  <p>Análise das mensagens de 01 a 27/10: cerca de 15 mil mensagens recebidas em 2.133 conversas. O horário comercial considerado foi de segunda a sexta, das 8h às 18h.</p>
+
+  <div class="facts four">
+    <div class="fact"><span class="big">6 min</span><h3>Mediana da primeira resposta humana</h3><p>47% respondidas em até 5 minutos e 82% em até 1 hora. Uma em cada dez espera mais de 3 horas.</p></div>
+    <div class="fact"><span class="big">26%</span><h3>das primeiras respostas vêm de automação</h3><p>2.036 respostas automáticas, quase todas em segundos. São mensagens de automação, sem conversa ou qualificação.</p></div>
+    <div class="fact"><span class="big">8h25</span><h3>de espera fora do horário</h3><p>8,7% das mensagens chegam fora do horário. Nessas conversas, um quarto espera mais de 8 horas e 9% passam de um dia.</p></div>
+    <div class="fact"><span class="big">447</span><h3>conversas sem resposta há mais de 24h</h3><p>A última mensagem foi do cliente e ninguém respondeu. 181 são de leads abertos (35 em Levantamento no Funil de consultores), 210 de leads perdidos e 56 de clientes que acabaram de comprar.</p></div>
+  </div>
+
+  <div class="figure">
+    <div class="cap"><strong>Mensagens recebidas por hora do dia</strong><span class="muted small">01 a 27/10, horário de Brasília · faixa cinza: fora do horário comercial</span></div>
+    <div class="chart" id="ch-horas" role="img" aria-label="Mensagens recebidas por hora. Quase todas entre 8h e 18h, com pico de 1.659 às 15h."></div>
+    <details class="data"><summary>Ver tabela</summary><div class="tbl"><table id="tb-horas"></table></div></details>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Quem respondeu</th><th class="r">Primeiras respostas</th><th class="r">Mediana</th><th class="r">Em até 5 min</th><th class="r">10% mais lentas acima de</th></tr></thead>
+      <tbody>
+        <tr><td>Automação</td><td class="r">2.036</td><td class="r">6 s</td><td class="r">88%</td><td class="r">7 min</td></tr>
+        <tr><td>Ismael Caetano</td><td class="r">1.493</td><td class="r">4,6 min</td><td class="r">52%</td><td class="r">3h16</td></tr>
+        <tr><td>Drielly Gusmao</td><td class="r">1.389</td><td class="r">4,3 min</td><td class="r">53%</td><td class="r">1h26</td></tr>
+        <tr><td>Jessica</td><td class="r">871</td><td class="r">8,6 min</td><td class="r">39%</td><td class="r">9h00</td></tr>
+        <tr><td>Ana Paula</td><td class="r">781</td><td class="r">11,1 min</td><td class="r">36%</td><td class="r">13h54</td></tr>
+        <tr><td>Simone Jahn (SDR)</td><td class="r">750</td><td class="r">3,7 min</td><td class="r">55%</td><td class="r">1h38</td></tr>
+        <tr><td>Andreia Silva (SDR)</td><td class="r">361</td><td class="r">12,4 min</td><td class="r">33%</td><td class="r">13h35</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Samuel aparece com 124 vendas e só 25 mensagens enviadas no período. Provavelmente atende por outro canal (telefone ou WhatsApp próprio), o que deixa o histórico dos clientes dele fora do Kommo.</p>
+</section>
+
+<section id="rotina">
+  <h2>Rotina comercial e carteira</h2>
+  <div class="facts four">
+    <div class="fact"><span class="big">88%</span><h3>das tarefas abertas estão vencidas</h3><p>919 de 1.044, sendo 825 há mais de 30 dias. 766 estão nos usuários genéricos: 601 no "Adm" e 165 no "ADM Kommo - Control Gestão". Guilherme Themiski tem 62 vencidas e nenhuma venda ou mensagem registrada no período.</p></div>
+    <div class="fact"><span class="big">95%</span><h3>dos leads abertos sem próxima ação</h3><p>14.062 leads abertos não têm tarefa agendada. Das 8.371 tarefas concluídas no período, 80% foram criadas por automação e só uma teve o resultado escrito.</p></div>
+    <div class="fact"><span class="big">8.177</span><h3>leads abertos no "Adm"</h3><p>55% da carteira aberta está num usuário que não atende: 3.912 em Clientes da base, 1.457 em Nutrição e 1.350 no Funil de Abertura. Ninguém é cobrado por esses leads.</p></div>
+    <div class="fact"><span class="big">2.206</span><h3>leads com usuários desativados</h3><p>Geovane Prati tem 2.054, incluindo 1.021 clientes da base. Gabriele Lopes tem 83 e Hoos tem 69. Hoje a conta tem 19 usuários e 10 ativos.</p></div>
+  </div>
+  <p>Na carteira aberta, 7.614 leads (52%) estão sem atualização há mais de 30 dias e 4.517 há mais de um ano. O valor em aberto soma R$ 7,5 milhões, mas R$ 6,7 milhões estão em Clientes da base e repetem o valor de pedidos antigos herdado pelo reaproveitamento do lead. Esse número não serve como previsão de vendas.</p>
+</section>
+
+<section id="cadastro">
+  <h2>Cadastro e rastreio</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Item</th><th>Situação</th></tr></thead>
+      <tbody>
+        <tr><td>Origem do lead</td><td>Campo "Origem" vazio em 3.179 dos 4.322 leads novos (74%). Os 10 campos de rastreio (utm_source, utm_campaign, gclid, fbclid…) nunca foram preenchidos. Não dá para saber qual canal ou campanha traz venda.</td></tr>
+        <tr><td>Qualificação do SDR</td><td>Os campos novos (decisor, tipo de loja, potencial, previsão de recompra, objeção) estão preenchidos em cerca de 6% dos leads dos últimos 30 dias.</td></tr>
+        <tr><td>Valor do lead</td><td>88,6% dos leads abertos estão sem valor. No Funil de consultores, 81 de 431.</td></tr>
+        <tr><td>Campos de lead</td><td>93 campos: 22 nunca usados e 43 com menos de 2% de preenchimento. Há pares que guardam a mesma coisa: "CNPJ:" (texto livre, 79%) e "N° CNPJ" (0%), "Interesse do cliente" e "Interesse em", "Status da Análise de crédito" e "TESTE - Status do Credito", "Outro motivo" e "Outro motivo perdido". "Última compra" é texto e deveria ser data. Há dois campos que são só linhas separadoras.</td></tr>
+        <tr><td>Tags</td><td>109 tags, 24 sem uso. Grafias repetidas (Site e site; STAND BY, stand by e STANDY BY; férias Ismael e ferias Ismael) e tags de carteira por vendedor que repetem o campo "Carteira".</td></tr>
+        <tr><td>Contatos</td><td>71.031 contatos e 18.090 empresas. 7.436 números de telefone aparecem em mais de um contato, somando 26.971 contatos (38%). 5.023 contatos não têm nome. Dois widgets de controle de duplicidade estão ativos ao mesmo tempo.</td></tr>
+        <tr><td>Exclusões</td><td>437 leads excluídos em 90 dias. Lead excluído some do histórico; para encerrar, perder com motivo é mais seguro.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Integrações ativas</h3>
+  <ul class="clean">
+    <li>WhatsApp por QR code (widget da Kommo) com 92% das mensagens, e WhatsApp oficial da Meta com 8%. A conexão por QR code depende do celular conectado e não é a via oficial da Meta para automação.</li>
+    <li>RD Station ativo como fonte de leads, mas nenhuma UTM chega ao lead.</li>
+    <li>Stripe, PayPal e Mercado Pago ativos. Os campos do PayPal nunca foram preenchidos, o que sugere que não estão em uso.</li>
+    <li>Dois widgets de duplicidade (leads_auto_doubles e dublicates_rubikon) e dois widgets F5 (notifier e respool).</li>
+    <li>Um webhook ativo para api.roydis.tech (novos leads, alterações e entrada). Webhooks da LeoLog e da VTCall estão desativados.</li>
+    <li>241 modelos de mensagem (155 internos e 86 do WhatsApp oficial), vários com nomes como "999a" a "999e", difíceis de achar na hora do atendimento.</li>
+  </ul>
+</section>
+
+<section id="melhorias">
+  <h2>Plano de melhorias</h2>
+  <p>As ações estão em ordem de prioridade. A primeira fase não muda nenhuma estrutura e já devolve controle à gestão. A segunda corrige o que distorce os números. A terceira usa a conta arrumada para vender mais.</p>
+
+  <div class="phase">
+    <header><h3>Fase 1 · próximos 7 dias</h3><span class="muted small">limpeza e controle, sem mudar processo</span></header>
+    <ol class="steps">
+      <li class="step"><span class="n">1</span><h4>Responder as conversas paradas e criar o hábito diário</h4><div class="body"><p><b>Por quê:</b> 181 leads abertos e 56 clientes recém-compradores estão com a última mensagem sem resposta há mais de 24 horas.</p><p><b>Como:</b> lista salva no Kommo de conversas sem resposta, revisada no início e no fim do dia por cada pessoa. Alerta automático ao gestor quando uma conversa de lead aberto passar de 2 horas no horário comercial.</p></div><div class="tags"><span>Esforço baixo</span><span>Gestor comercial e equipe</span></div></li>
+      <li class="step"><span class="n">2</span><h4>Tirar os leads do "Adm" e dos usuários desativados</h4><div class="body"><p><b>Por quê:</b> 8.177 leads no "Adm" e 2.206 em usuários desativados não têm dono. Ninguém responde por eles.</p><p><b>Como:</b> nesses clientes o campo "Carteira" está vazio em 99% dos casos. Definir a regra de carteira (por região ou pelo vendedor da última compra no LeoSales) e redistribuir, começando pelos clientes que compram com mais frequência segundo o nível do Qlik. O que estiver em funil parado entra na limpeza da ação 6. Regra a partir daqui: usuário genérico não é dono de lead.</p></div><div class="tags"><span>Esforço médio</span><span>Gestor comercial com a Control Gestão</span></div></li>
+      <li class="step"><span class="n">3</span><h4>Zerar as tarefas vencidas e corrigir quem as cria</h4><div class="body"><p><b>Por quê:</b> com 88% das tarefas vencidas, a lista de tarefas deixou de orientar o dia.</p><p><b>Como:</b> concluir em lote as 825 vencidas há mais de 30 dias. Ajustar as automações que criam tarefas para o "Adm" e o "ADM Kommo - Control Gestão" (as mais comuns: "Cliente Vilhena/Manaus não conseguiu atendimento" e "Ligação clientes que não responderam") para que caiam no vendedor da carteira.</p></div><div class="tags"><span>Esforço baixo</span><span>Control Gestão</span></div></li>
+      <li class="step"><span class="n">4</span><h4>Revisar a lista de motivos de perda</h4><div class="body"><p><b>Por quê:</b> 1.065 perdas do trimestre não eram perda, e "Follow-up" (314) e "Outro" (329) não explicam nada.</p><p><b>Como:</b> trocar "Venda Futura" por uma etapa de nutrição com data de retorno. Mover Dúvidas, SAC, Financeiro, Spam e RH para um motivo "Não era oportunidade". Retirar "Follow-up". Exigir texto quando o motivo for "Outro". Criar "Limpeza de base" para fechamentos em lote.</p></div><div class="tags"><span>Esforço baixo</span><span>Gestor comercial</span></div></li>
+    </ol>
+  </div>
+
+  <div class="phase">
+    <header><h3>Fase 2 · próximas 4 semanas</h3><span class="muted small">estrutura que faz os números baterem</span></header>
+    <ol class="steps" start="5">
+      <li class="step"><span class="n">5</span><h4>Um pedido, um lead</h4><div class="body"><p><b>Por quê:</b> o mesmo lead é ganho, devolvido à base e depois perdido no ciclo seguinte. 111 leads foram ganhos mais de uma vez em 90 dias (um deles 8 vezes), e o valor do pedido anterior é sobrescrito. Receita, ticket, ciclo e taxa por vendedor ficam errados.</p><p><b>Como:</b> no lugar de mover o lead ganho para "Base de clientes", criar um lead novo em Clientes da base a cada pedido. O histórico do cliente fica no contato e na empresa.</p></div><div class="tags"><span>Esforço médio</span><span>Control Gestão</span></div></li>
+      <li class="step"><span class="n">6</span><h4>Reduzir de 28 para 7 funis</h4><div class="body"><p><b>Por quê:</b> 11 funis estão parados ou vazios, e 1.407 leads abertos ficaram escondidos em funis arquivados.</p><p><b>Como:</b> manter Pré-Vendas (entrada e SDR), Funil de consultores, Clientes da base, uma Nutrição ativa, um funil de Eventos (feiras identificadas por tag), VILHENA / MANAUS se a operação regional continuar, e SDR - Reativação. Encerrar com o motivo "Limpeza de base" os leads de Funil de Abertura, Disparos Antigos, Campanha Clientes Inativos e dos arquivados. Os 548 parados em "Entrada de leads (CNPJ)" entram na mesma limpeza. Apagar os funis de exemplo e teste.</p></div><div class="tags"><span>Esforço médio</span><span>Control Gestão com aprovação do gestor</span></div></li>
+      <li class="step"><span class="n">7</span><h4>Registrar a origem de todo lead</h4><div class="body"><p><b>Por quê:</b> 74% dos leads novos chegam sem origem e nenhuma UTM é gravada. Sem isso não há como decidir onde investir.</p><p><b>Como:</b> preencher "Origem" automaticamente pela porta de entrada (botão do site, carrinho abandonado, Meta, feira, RD Station). Nos links de WhatsApp do site e dos anúncios, levar um código de campanha que a automação traduz em UTM no lead.</p></div><div class="tags"><span>Esforço médio</span><span>Control Gestão e marketing</span></div></li>
+      <li class="step"><span class="n">8</span><h4>Valor obrigatório a partir do orçamento</h4><div class="body"><p><b>Por quê:</b> só 81 dos 431 leads do Funil de consultores têm valor. A previsão de vendas não existe.</p><p><b>Como:</b> tornar o valor obrigatório nas etapas Orçamento, Negociação e Crédito. Com a ação 5 feita, o valor em aberto passa a ser previsão real.</p></div><div class="tags"><span>Esforço baixo</span><span>Control Gestão</span></div></li>
+      <li class="step"><span class="n">9</span><h4>Arrumar campos, tags e contatos duplicados</h4><div class="body"><p><b>Por quê:</b> campos repetidos dividem a informação, e 38% dos contatos têm telefone repetido, o que espalha o histórico do cliente em vários cards.</p><p><b>Como:</b> unir os campos duplicados e apagar os 22 vazios e os separadores. Converter "Última compra" para data. Padronizar as tags e tirar as de carteira. Manter um só widget de duplicidade e mesclar os 7.436 grupos de telefone em lotes, começando pelos clientes da base.</p></div><div class="tags"><span>Esforço médio</span><span>Control Gestão</span></div></li>
+    </ol>
+  </div>
+
+  <div class="phase">
+    <header><h3>Fase 3 · próximos 2 a 3 meses</h3><span class="muted small">vender mais com a conta arrumada</span></header>
+    <ol class="steps" start="10">
+      <li class="step"><span class="n">10</span><h4>Recompra ativa na base de clientes</h4><div class="body"><p><b>Por quê:</b> Clientes da base gerou 462 vendas a 34% de taxa de ganho, e 5.552 clientes estão parados. O "Nível de cliente (Qlik)" já está em 72% deles (ex.: "Bronze, 1 pedido a cada 6 meses") e a "Última compra" em 74%.</p><p><b>Como:</b> quando a data da última compra passar do intervalo do nível do cliente, criar automaticamente um lead de recompra para o vendedor da carteira, com a categoria mais comprada no card.</p></div><div class="tags"><span>Esforço médio</span><span>Control Gestão</span></div></li>
+      <li class="step"><span class="n">11</span><h4>Agente de IA na primeira resposta e na triagem</h4><div class="body"><p><b>Por quê:</b> fora do horário, um quarto das conversas espera mais de 8 horas. Os campos de qualificação do SDR ficam vazios em 94% dos leads, e 458 perdas eram atendimento de SAC ou dúvida.</p><p><b>Como:</b> agente no WhatsApp que responde em segundos, pede CNPJ, região, tipo de loja e interesse, grava nos campos do lead, separa SAC e financeiro e entrega ao SDR ou ao consultor. Entra por etapas: primeiro fora do horário, liberado por tag, e só depois para todos. Antes disso, avaliar levar o número principal para o WhatsApp oficial, mais estável para automação.</p></div><div class="tags"><span>Esforço alto</span><span>Control Gestão</span></div></li>
+      <li class="step"><span class="n">12</span><h4>Painel semanal de gestão</h4><div class="body"><p><b>Por quê:</b> os números que importam (safra de leads, tempo de resposta, conversas paradas, tarefas vencidas, leads sem dono) não aparecem nos relatórios padrão do Kommo.</p><p><b>Como:</b> rodar esta auditoria toda segunda-feira e enviar o resumo ao gestor. O script já existe e é só de leitura.</p></div><div class="tags"><span>Esforço baixo</span><span>Control Gestão</span></div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="notas">
+  <h2>Notas sobre os números</h2>
+  <ul class="clean">
+    <li>Tudo foi lido pela API da Kommo, só leitura. Salesbots e regras do Digital Pipeline não são expostos pela API e precisam ser revisados na tela da conta.</li>
+    <li>A API devolve no máximo 15 mil eventos por tipo nesta coleta. Por isso as mudanças de etapa cobrem 64 dias, as mensagens 26 dias (01 a 27/10) e as trocas de responsável 21 dias. Vendas e perdas foram buscadas por funil e cobrem os 90 dias inteiros.</li>
+    <li>O valor das vendas é o valor atual do lead. Como o lead é reaproveitado, o valor de um pedido anterior pode ter sido sobrescrito, e o total real tende a ser maior que R$ 3,7 milhões.</li>
+    <li>"Sem resposta há mais de 24h" inclui mensagens que talvez não pedissem resposta, como um "obrigado".</li>
+    <li>Telefone repetido pode incluir números compartilhados de propósito, como o fixo de uma loja com vários compradores.</li>
+    <li>Os dias de fechamento em massa foram identificados como dias com pelo menos cinco vezes a mediana diária de perdas.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>Control Gestão · Auditoria gerada pelo script <span class="mono">auditoria/auditoria-kommo.mjs</span> no repositório LeonoraB2B.</span>
+</footer>
+</main>
+
+<script>
+(function () {
+  var semanas = ['03/08', '10/08', '17/08', '24/08', '31/08', '07/09', '14/09', '21/09', '28/09', '05/10', '12/10', '19/10'];
+  var leads = [394, 462, 350, 387, 324, 336, 299, 369, 270, 260, 251, 258];
+  var vendas = [17, 124, 61, 66, 52, 45, 41, 118, 77, 33, 45, 66];
+  var horas = [34, 29, 13, 15, 5, 9, 56, 116, 1093, 1486, 1607, 1491, 981, 1360, 1652, 1659, 1544, 1151, 251, 127, 133, 79, 42, 67];
+  var motivos = [
+    ['Cliente não respondeu', [['Sem Retorno', 2070], ['Cliente sem contato', 605]]],
+    ['Cliente desistiu', [['Não tem mais interesse', 1330]]],
+    ['Oportunidade adiada', [['Venda Futura', 607]]],
+    ['Motivo genérico', [['Outro', 329], ['Follow-up', 314], ['Sem motivo', 147]]],
+    ['Não era oportunidade de venda', [['Dúvidas', 315], ['SAC', 66], ['Não trabalhamos com o produto', 27], ['Spam', 25], ['Financeiro', 22], ['RH, busca emprego', 3]]],
+    ['Política comercial e crédito', [['Pedido mínimo alto', 91], ['Cliente sem crédito liberado', 73], ['Compra com o representante físico', 73], ['Licitação fora da política', 59], ['Cliente sem CNPJ', 53], ['Outros motivos comerciais', 81]]]
+  ];
+  var fmt = function (n) { return n.toLocaleString('pt-BR'); };
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function niceMax(v) {
+    var p = Math.pow(10, Math.floor(Math.log10(v)));
+    var steps = [1, 2, 2.5, 5, 10];
+    for (var i = 0; i < steps.length; i++) if (steps[i] * p >= v) return steps[i] * p;
+    return 10 * p;
+  }
+  function compact(v) { return v >= 1000 ? (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : fmt(v); }
+
+  function columns(box, labels, values, opt) {
+    opt = opt || {};
+    box.innerHTML = '';
+    var W = Math.max(280, box.clientWidth), H = 190, pl = 40, pr = 6, pt = 18, pb = 24;
+    var max = niceMax(Math.max.apply(null, values));
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, height: H, 'aria-hidden': 'true' }, box);
+    var iw = W - pl - pr, ih = H - pt - pb, slot = iw / values.length;
+    var bw = Math.min(24, slot - 2);
+    var y = function (v) { return pt + ih - (v / max) * ih; };
+    if (opt.band) opt.band.forEach(function (r) {
+      el('rect', { x: pl + r[0] * slot, y: pt, width: (r[1] - r[0]) * slot, height: ih, class: 'bandrect' }, svg);
+    });
+    [0, max / 2, max].forEach(function (t) {
+      el('line', { x1: pl, x2: W - pr, y1: y(t), y2: y(t), class: 'grid' }, svg);
+      var tx = el('text', { x: pl - 6, y: y(t) + 4, 'text-anchor': 'end' }, svg); tx.textContent = compact(t);
+    });
+    var hi = values.indexOf(Math.max.apply(null, values));
+    var tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; box.appendChild(tip);
+    values.forEach(function (v, i) {
+      var x = pl + i * slot + (slot - bw) / 2, top = y(v), base = pt + ih, r = Math.min(4, base - top);
+      var hit = el('rect', { x: pl + i * slot, y: pt, width: slot, height: ih, class: 'hit' }, svg);
+      var d = 'M' + x + ',' + base + ' V' + (top + r) + ' Q' + x + ',' + top + ' ' + (x + r) + ',' + top + ' H' + (x + bw - r) + ' Q' + (x + bw) + ',' + top + ' ' + (x + bw) + ',' + (top + r) + ' V' + base + ' Z';
+      var bar = el('path', { d: d, class: 'bar' }, svg);
+      var every = opt.every || (slot < 34 ? 2 : 1);
+      if (i % every === 0) { var lx = el('text', { x: pl + i * slot + slot / 2, y: H - 6, 'text-anchor': 'middle' }, svg); lx.textContent = labels[i]; }
+      if (i === hi || (i === values.length - 1 && !opt.soMaximo)) { var vl = el('text', { x: x + bw / 2, y: top - 5, 'text-anchor': 'middle', class: 'val' }, svg); vl.textContent = fmt(v); }
+      var show = function () {
+        bar.classList.add('on'); tip.hidden = false;
+        tip.textContent = (opt.prefix || '') + labels[i] + (opt.suffix || '') + ': ' + fmt(v) + ' ' + opt.unit;
+        tip.style.left = Math.min(Math.max(x + bw / 2, 70), W - 70) + 'px'; tip.style.top = top + 'px';
+      };
+      var hide = function () { bar.classList.remove('on'); tip.hidden = true; };
+      hit.addEventListener('mouseenter', show); hit.addEventListener('mouseleave', hide);
+      hit.addEventListener('touchstart', show, { passive: true });
+    });
+  }
+
+  function table(id, head, rows) {
+    var t = document.getElementById(id); if (!t) return;
+    var h = '<thead><tr>' + head.map(function (c, i) { return '<th' + (i ? ' class="r"' : '') + '>' + c + '</th>'; }).join('') + '</tr></thead><tbody>';
+    rows.forEach(function (r) { h += '<tr>' + r.map(function (c, i) { return '<td' + (i ? ' class="r"' : '') + '>' + (typeof c === 'number' ? fmt(c) : c) + '</td>'; }).join('') + '</tr>'; });
+    t.innerHTML = h + '</tbody>';
+  }
+
+  function draw() {
+    columns(document.getElementById('ch-leads'), semanas, leads, { unit: 'leads', prefix: 'Semana de ' });
+    columns(document.getElementById('ch-vendas'), semanas, vendas, { unit: 'vendas', prefix: 'Semana de ' });
+    var hl = horas.map(function (_, h) { return h + 'h'; });
+    columns(document.getElementById('ch-horas'), hl, horas, { unit: 'mensagens', soMaximo: true, band: [[0, 8], [18, 24]], every: document.getElementById('ch-horas').clientWidth < 520 ? 3 : 2 });
+  }
+
+  table('tb-semanas', ['Semana', 'Leads novos', 'Vendas'], semanas.map(function (s, i) { return [s, leads[i], vendas[i]]; }));
+  table('tb-horas', ['Hora', 'Mensagens recebidas'], horas.map(function (v, h) { return [h + 'h', v]; }));
+
+  var mx = 2070, box = document.getElementById('motivos'), html = '';
+  motivos.forEach(function (g) {
+    var tot = g[1].reduce(function (t, r) { return t + r[1]; }, 0);
+    html += '<div class="head"><span>' + g[0] + '</span><span>' + fmt(tot) + ' · ' + (100 * tot / 6290).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) + '%</span></div>';
+    g[1].forEach(function (r) {
+      html += '<div class="row"><span class="name">' + r[0] + '</span><span class="track"><span class="fill" style="display:block;width:' + (100 * r[1] / mx).toFixed(1) + '%"></span></span><span class="n">' + fmt(r[1]) + '</span></div>';
+    });
+  });
+  box.innerHTML = html;
+
+  draw();
+  var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(draw, 150); });
+})();
+</script>

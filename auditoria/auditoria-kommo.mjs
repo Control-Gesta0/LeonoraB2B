@@ -10,7 +10,7 @@
  *
  * Variáveis:
  *   KOMMO_TOKEN          token de longa duração (eyJ...) · ou KOMMO_TOKEN_FILE com o caminho
- *   KOMMO_DOMAIN         opcional (https://<conta>.kommo.com). Padrão: api_domain do token
+ *   KOMMO_DOMAIN         opcional (https://<conta>.kommo.com). Padrão: descoberto pelo token
  *   DIAS                 janela de análise (padrão 90)
  *   HORARIO              horário comercial local, seg–sex (padrão "8-18")
  *   SAIDA                pasta de saída (padrão auditoria/saida)
@@ -26,8 +26,19 @@ const env = process.env
 const token = (env.KOMMO_TOKEN || (env.KOMMO_TOKEN_FILE ? fs.readFileSync(env.KOMMO_TOKEN_FILE, 'utf8') : '')).trim()
 if (!token.startsWith('eyJ')) { console.error('Defina KOMMO_TOKEN (token de longa duração, começa com eyJ).'); process.exit(1) }
 const jwt = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString())
-const base = (env.KOMMO_DOMAIN || jwt.api_domain || '').replace(/\/+$/, '').replace(/^(?!https?:\/\/)/, 'https://')
-if (!base) { console.error('Defina KOMMO_DOMAIN (https://<conta>.kommo.com).'); process.exit(1) }
+// o api_domain do token (api-g...) responde "Account not found": a API v4 roda no subdomínio da conta
+const SO_ANALISE = process.argv.includes('--so-analise')
+async function descobrirDominio() {
+  try {
+    const r = await fetch(`https://www.${jwt.base_domain || 'kommo.com'}/oauth2/account/subdomain`, { headers: { Authorization: `Bearer ${token}` } })
+    return r.ok ? (await r.json()).domain : null
+  } catch (e) {
+    console.error(`Falha ao descobrir o subdomínio: ${e.cause?.code || e.message}`)
+    return null
+  }
+}
+const base = SO_ANALISE ? '' : (env.KOMMO_DOMAIN || (await descobrirDominio()) || '').replace(/\/+$/, '').replace(/^(?!https?:\/\/)/, 'https://')
+if (!base && !SO_ANALISE) { console.error('Não consegui descobrir o subdomínio. Defina KOMMO_DOMAIN (https://<conta>.kommo.com).'); process.exit(1) }
 
 const DIAS = Number(env.DIAS || 90)
 const [H_INI, H_FIM] = (env.HORARIO || '8-18').split('-').map(Number)
@@ -89,10 +100,30 @@ async function paginar(p, chave, { limite = 250, maxPag = MAX_PAG, opcional = fa
 }
 
 const salvar = (nome, dado) => fs.writeFileSync(path.join(BRUTO, `${nome}.json`), JSON.stringify(dado, null, 2))
+const TIPOS_EVENTO = ['lead_added', 'lead_status_changed', 'incoming_chat_message', 'outgoing_chat_message', 'robot_replied',
+  'entity_responsible_changed', 'incoming_call', 'outgoing_call', 'lead_deleted']
+
+// --so-analise: refaz a análise sobre o bruto já baixado, sem chamar a API
+function carregar() {
+  const ler = nome => JSON.parse(fs.readFileSync(path.join(BRUTO, `${nome}.json`), 'utf8'))
+  const d = {}
+  for (const nome of ['conta', 'usuarios', 'funis', 'motivosPerda', 'camposLead', 'camposContato', 'camposEmpresa', 'tagsLead', 'tagsContato',
+    'fontes', 'webhooks', 'widgets', 'catalogos', 'templatesChat', 'leads', 'contatos', 'empresas', 'tarefasAbertas', 'tarefasConcluidas',
+    'entradaResumo', 'entrada']) d[nome] = ler(nome)
+  d.eventos = {}
+  for (const t of TIPOS_EVENTO) {
+    d.eventos[t] = ler(`eventos_${t}`)
+    d.eventos[`${t}__truncado`] = d.eventos[t].length >= MAX_PAG_EV * 100
+    if (d.eventos[`${t}__truncado`]) truncados.push(`eventos ${t} (parou em ${d.eventos[t].length} registros)`)
+  }
+  d.fechamentos = ler('eventos_fechamentos')
+  return d
+}
 
 async function coletar() {
   const conta = await get('account?with=amojo_id,users_groups,task_types,version,datetime_settings,entity_names')
   console.log(`Conta: ${conta.name} · ${conta.subdomain}.kommo.com · id ${conta.id}`)
+  salvar('conta', conta)
 
   const d = { conta }
   const etapa = async (nome, fn) => { process.stdout.write(`  ${nome}… `); d[nome] = await fn(); salvar(nome, d[nome]); console.log(Array.isArray(d[nome]) ? d[nome].length : 'ok') }
@@ -119,9 +150,7 @@ async function coletar() {
   await etapa('entrada', () => paginar('leads/unsorted', 'unsorted', { opcional: true }))
 
   d.eventos = {}
-  const tipos = ['lead_added', 'lead_status_changed', 'incoming_chat_message', 'outgoing_chat_message', 'robot_replied',
-    'entity_responsible_changed', 'incoming_call', 'outgoing_call', 'lead_deleted']
-  for (const t of tipos) {
+  for (const t of TIPOS_EVENTO) {
     process.stdout.write(`  eventos ${t}… `)
     const antes = truncados.length
     d.eventos[t] = await paginar(`events?filter[type]=${t}&filter[created_at][from]=${DESDE}`, 'events', { limite: 100, maxPag: MAX_PAG_EV, opcional: true })
@@ -129,6 +158,17 @@ async function coletar() {
     salvar(`eventos_${t}`, d.eventos[t])
     console.log(d.eventos[t].length)
   }
+
+  // Vendas e perdas contadas pelo EVENTO de entrada na etapa, não pela etapa atual:
+  // há contas que reaproveitam o lead (ganho → volta para a base → perdido no ciclo seguinte)
+  // e a etapa atual some com a venda. Filtrar por destino evita o teto de eventos por tipo.
+  process.stdout.write('  fechamentos por funil… ')
+  d.fechamentos = {}
+  for (const p of d.funis) for (const st of [GANHO, PERDIDO]) {
+    d.fechamentos[`${p.id}:${st}`] = await paginar(`events?filter[type]=lead_status_changed&filter[value_after][leads_statuses][0][pipeline_id]=${p.id}&filter[value_after][leads_statuses][0][status_id]=${st}&filter[created_at][from]=${DESDE}`, 'events', { limite: 100, maxPag: MAX_PAG, opcional: true })
+  }
+  salvar('eventos_fechamentos', d.fechamentos)
+  console.log(Object.values(d.fechamentos).reduce((t, a) => t + a.length, 0))
   return d
 }
 
@@ -145,7 +185,7 @@ const pct = (a, b) => (b ? Math.round((1000 * a) / b) / 10 : null)
 const r1 = x => (x == null ? null : Math.round(x * 10) / 10)
 const soma = arr => arr.reduce((t, x) => t + (Number(x) || 0), 0)
 const contar = (arr, fn) => { const m = new Map(); for (const x of arr) { const k = fn(x); m.set(k, (m.get(k) || 0) + 1) } return [...m].sort((a, b) => b[1] - a[1]) }
-const normalizar = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '')
+const normalizar = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '')
 
 function analisar(d) {
   const { conta } = d
@@ -168,10 +208,27 @@ function analisar(d) {
   const fechado = l => l.status_id === GANHO || l.status_id === PERDIDO
   const abertos = leads.filter(l => !fechado(l))
   const criadosJanela = leads.filter(l => l.created_at >= DESDE)
-  const fechadosJanela = leads.filter(l => fechado(l) && (l.closed_at || l.updated_at) >= DESDE)
-  const ganhos = fechadosJanela.filter(l => l.status_id === GANHO)
-  const perdidos = fechadosJanela.filter(l => l.status_id === PERDIDO)
+  const porId = new Map(leads.map(l => [l.id, l]))
   const ev = d.eventos
+  const diaLocal = ts => new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date(ts * 1000))
+  const semanaLocal = ts => { const { dow } = local(ts); return diaLocal(ts - ((dow + 6) % 7) * DIA) } // segunda-feira da semana
+
+  // vendas e perdas = eventos de entrada em Ganho/Perdido na janela (ver coletar)
+  const fechamentos = st => Object.entries(d.fechamentos || {}).filter(([k]) => k.endsWith(`:${st}`))
+    .flatMap(([k, evs]) => evs.map(e => ({ id: e.entity_id, lead: porId.get(e.entity_id), ts: e.created_at, por: e.created_by, funil: Number(k.split(':')[0]) })))
+  const vendasEv = fechamentos(GANHO)
+  const perdasEv = fechamentos(PERDIDO)
+  const unicos = arr => [...new Map(arr.filter(x => x.lead).map(x => [x.id, x.lead])).values()]
+  const receitaDe = arr => soma(unicos(arr).map(l => l.price))
+  const cicloDe = arr => r1(quantil(arr.filter(x => x.lead).map(x => (x.ts - x.lead.created_at) / DIA), 0.5))
+  const taxa = (g, p) => pct(g.length, g.length + p.length)
+
+  // dias de fechamento em massa (limpeza de base) distorcem a taxa de ganho
+  const perdasPorDia = contar(perdasEv, x => diaLocal(x.ts))
+  const medianaDia = quantil(perdasPorDia.map(([, n]) => n), 0.5) || 0
+  const diasEmMassa = perdasPorDia.filter(([, n]) => n >= Math.max(100, 5 * medianaDia))
+  const emMassa = new Set(diasEmMassa.map(([dia]) => dia))
+  const perdasOperacao = perdasEv.filter(x => !emMassa.has(diaLocal(x.ts)))
   const statusDe = v => v?.[0]?.lead_status
 
   // entrada na etapa atual = último evento de mudança de etapa
@@ -204,8 +261,8 @@ function analisar(d) {
     const statuses = [...p._embedded.statuses].sort((a, b) => a.sort - b.sort)
     const doFunil = leads.filter(l => l.pipeline_id === p.id)
     const ab = doFunil.filter(l => !fechado(l))
-    const g = ganhos.filter(l => l.pipeline_id === p.id)
-    const pe = perdidos.filter(l => l.pipeline_id === p.id)
+    const g = vendasEv.filter(x => x.funil === p.id)
+    const pe = perdasEv.filter(x => x.funil === p.id)
     const coorte = criadosJanela.filter(l => [...(alcancou.get(l.id) || [])].some(k => k.startsWith(`${p.id}:`)))
     const sortDe = new Map(statuses.map(s => [s.id, s.sort]))
     const maxSort = l => {
@@ -224,7 +281,7 @@ function analisar(d) {
       const naEtapa = doFunil.filter(l => l.status_id === s.id)
       if (final) {
         const janela = (s.id === GANHO ? g : pe)
-        return { id: s.id, nome: s.name, final: true, totalHistorico: naEtapa.length, naJanela: janela.length, valorNaJanela: soma(janela.map(l => l.price)) }
+        return { id: s.id, nome: s.name, final: true, totalHistorico: naEtapa.length, naJanela: janela.length, valorNaJanela: receitaDe(janela) }
       }
       const dias = naEtapa.map(diasNaEtapa)
       const parado = n => naEtapa.filter(l => l.updated_at < AGORA - n * DIA).length
@@ -243,22 +300,28 @@ function analisar(d) {
       leadsAbertos: ab.length, valorAberto: soma(ab.map(l => l.price)),
       criadosNaJanela: doFunil.filter(l => l.created_at >= DESDE).length,
       coorteJanela: coorte.length,
-      ganhos: g.length, perdidos: pe.length, taxaGanho: pct(g.length, g.length + pe.length),
-      receita: soma(g.map(l => l.price)), ticketMedio: g.length ? Math.round(soma(g.map(l => l.price)) / g.length) : null,
-      cicloDiasMediana: r1(quantil(g.map(l => ((l.closed_at || l.updated_at) - l.created_at) / DIA), 0.5)),
+      ganhos: g.length, perdidos: pe.length, taxaGanho: taxa(g, pe),
+      receita: receitaDe(g), ticketMedio: unicos(g).length ? Math.round(receitaDe(g) / unicos(g).length) : null,
+      cicloDiasMediana: cicloDe(g),
       etapas,
     }
   })
 
   // ── perdas ──
-  const motivo = l => l._embedded?.loss_reason?.[0]?.name || (l.loss_reason_id ? `#${l.loss_reason_id}` : null)
+  // muitas contas guardam o motivo num campo próprio em vez do motivo nativo da Kommo
+  const campoMotivo = d.camposLead.find(f => /motivo.*perd/i.test(f.name) && /select/.test(f.type))
+  const valorCampo = (l, id) => l.custom_fields_values?.find(v => v.field_id === id)?.values?.map(x => x.value).join(', ') || null
+  const motivo = l => (campoMotivo && valorCampo(l, campoMotivo.id)) || l._embedded?.loss_reason?.[0]?.name || null
+  const perdidosUnicos = unicos(perdasEv)
   const perdas = {
-    total: perdidos.length,
-    comMotivo: perdidos.filter(motivo).length,
-    pctComMotivo: pct(perdidos.filter(motivo).length, perdidos.length),
-    porMotivo: contar(perdidos.filter(motivo), motivo).slice(0, 15),
-    motivosCadastrados: d.motivosPerda.map(m => m.name),
-    motivoObrigatorioLigado: conta.is_loss_reason_enabled,
+    eventos: perdasEv.length, leads: perdidosUnicos.length,
+    campoDeMotivo: campoMotivo?.name || 'motivo nativo da Kommo',
+    pctComMotivo: pct(perdidosUnicos.filter(motivo).length, perdidosUnicos.length),
+    porMotivo: contar(perdidosUnicos, l => motivo(l) || '(vazio)').slice(0, 20),
+    usoDoMotivoNativo: pct(perdidosUnicos.filter(l => l._embedded?.loss_reason?.length).length, perdidosUnicos.length),
+    motivosNativosCadastrados: d.motivosPerda.map(m => m.name),
+    porQuemMarcou: contar(perdasEv, x => nomeUsuario(x.por)).slice(0, 15),
+    fechamentosEmMassa: diasEmMassa.map(([dia, n]) => ({ dia, perdas: n })),
   }
 
   // ── tarefas ──
@@ -407,8 +470,9 @@ function analisar(d) {
   // ── equipe ──
   const equipe = d.usuarios.map(u => {
     const meus = abertos.filter(l => l.responsible_user_id === u.id)
-    const g = ganhos.filter(l => l.responsible_user_id === u.id)
-    const p = perdidos.filter(l => l.responsible_user_id === u.id)
+    // quem marcou a venda/perda (o responsável do lead muda quando ele é reaproveitado)
+    const g = vendasEv.filter(x => x.por === u.id)
+    const p = perdasEv.filter(x => x.por === u.id)
     return {
       id: u.id, nome: u.name, ativo: ativo(u), admin: !!u.rights?.is_admin, gratuito: !!u.rights?.is_free,
       papel: u._embedded?.roles?.[0]?.name || null, grupo: u._embedded?.groups?.[0]?.name || null,
@@ -416,7 +480,7 @@ function analisar(d) {
       leadsAbertosSemTarefa: semTarefa.filter(l => l.responsible_user_id === u.id).length,
       tarefasAbertas: tAbertas.filter(t => t.responsible_user_id === u.id).length,
       tarefasAtrasadas: tAbertas.filter(t => t.responsible_user_id === u.id && atrasada(t)).length,
-      ganhos: g.length, perdidos: p.length, taxaGanho: pct(g.length, g.length + p.length), receita: soma(g.map(l => l.price)),
+      ganhos: g.length, perdidos: p.length, taxaGanho: taxa(g, p), receita: receitaDe(g),
       mensagensEnviadas: enviadas.filter(m => m.created_by === u.id).length,
     }
   }).sort((a, b) => b.leadsAbertos - a.leadsAbertos)
@@ -448,10 +512,23 @@ function analisar(d) {
     },
     volume: {
       leadsTotal: leads.length, leadsAbertos: abertos.length, valorAberto: soma(abertos.map(l => l.price)),
-      criadosNaJanela: criadosJanela.length, ganhosNaJanela: ganhos.length, perdidosNaJanela: perdidos.length,
-      taxaGanho: pct(ganhos.length, ganhos.length + perdidos.length), receitaNaJanela: soma(ganhos.map(l => l.price)),
-      ticketMedio: ganhos.length ? Math.round(soma(ganhos.map(l => l.price)) / ganhos.length) : null,
-      cicloDiasMediana: r1(quantil(ganhos.map(l => ((l.closed_at || l.updated_at) - l.created_at) / DIA), 0.5)),
+      criadosNaJanela: criadosJanela.length,
+      vendas: vendasEv.length, leadsGanhos: unicos(vendasEv).length,
+      perdas: perdasEv.length, perdasForaDaLimpeza: perdasOperacao.length,
+      taxaGanho: taxa(vendasEv, perdasEv), taxaGanhoSemLimpeza: taxa(vendasEv, perdasOperacao),
+      // valor atual dos leads ganhos: lead reaproveitado tem o valor do pedido anterior sobrescrito
+      receitaNaJanela: receitaDe(vendasEv),
+      ticketMedio: unicos(vendasEv).length ? Math.round(receitaDe(vendasEv) / unicos(vendasEv).length) : null,
+      cicloDiasMediana: cicloDe(vendasEv),
+      vendasPorSemana: contar(vendasEv, x => semanaLocal(x.ts)).sort((a, b) => a[0].localeCompare(b[0])),
+      criadosPorSemana: contar(criadosJanela, l => semanaLocal(l.created_at)).sort((a, b) => a[0].localeCompare(b[0])),
+      // safra: dos leads criados em cada faixa, quantos já viraram venda
+      conversaoPorSafra: [[DIAS, 60], [60, 30], [30, 0]].map(([de, ate]) => {
+        const safra = leads.filter(l => l.created_at >= AGORA - de * DIA && l.created_at < AGORA - ate * DIA)
+        const vendidos = new Set(vendasEv.map(x => x.id))
+        const n = safra.filter(l => vendidos.has(l.id) || l.status_id === GANHO).length
+        return { criadosEntreDias: `${de}-${ate}`, leads: safra.length, viraramVenda: n, pct: pct(n, safra.length), aindaAbertos: safra.filter(l => !fechado(l)).length }
+      }),
     },
     funis, perdas, tarefas, atendimento, entrada, qualidade, equipe, automacao,
     limitacoes: { falhas, truncados },
@@ -465,9 +542,11 @@ function resumo(m) {
   const v = x => `${m.conta.moeda || ''} ${n(Math.round(x || 0))}`.trim()
   const L = []
   L.push(`# Auditoria Kommo · ${m.conta.nome} (${m.conta.subdominio})`, '', `Gerado em ${m.geradoEm} · janela de ${m.janelaDias} dias · fuso ${m.fusoHorario}`, '')
-  L.push('## Volume', '', `| Leads abertos | Valor aberto | Criados | Ganhos | Perdidos | Taxa de ganho | Receita | Ticket | Ciclo (mediana) |`, '|---|---|---|---|---|---|---|---|---|')
+  L.push('## Volume', '', `| Leads abertos | Valor aberto | Criados | Vendas | Perdas | Taxa de ganho | Sem a limpeza | Receita | Ticket | Ciclo (mediana) |`, '|---|---|---|---|---|---|---|---|---|---|')
   const o = m.volume
-  L.push(`| ${n(o.leadsAbertos)} | ${v(o.valorAberto)} | ${n(o.criadosNaJanela)} | ${n(o.ganhosNaJanela)} | ${n(o.perdidosNaJanela)} | ${n(o.taxaGanho)}% | ${v(o.receitaNaJanela)} | ${v(o.ticketMedio)} | ${n(o.cicloDiasMediana)} d |`, '')
+  L.push(`| ${n(o.leadsAbertos)} | ${v(o.valorAberto)} | ${n(o.criadosNaJanela)} | ${n(o.vendas)} | ${n(o.perdas)} | ${n(o.taxaGanho)}% | ${n(o.taxaGanhoSemLimpeza)}% | ${v(o.receitaNaJanela)} | ${v(o.ticketMedio)} | ${n(o.cicloDiasMediana)} d |`, '')
+  for (const s of o.conversaoPorSafra) L.push(`- Leads criados há ${s.criadosEntreDias} dias: ${n(s.leads)}, ${n(s.viraramVenda)} viraram venda (${n(s.pct)}%), ${n(s.aindaAbertos)} ainda abertos`)
+  L.push('')
   for (const p of m.funis) {
     L.push(`## Funil: ${p.nome}${p.principal ? ' (principal)' : ''}${p.arquivado ? ' (arquivado)' : ''}`, '')
     L.push(`Abertos ${n(p.leadsAbertos)} · criados ${n(p.criadosNaJanela)} · ganhos ${n(p.ganhos)} · perdidos ${n(p.perdidos)} · taxa ${n(p.taxaGanho)}% · ciclo ${n(p.cicloDiasMediana)} d`, '')
@@ -484,7 +563,8 @@ function resumo(m) {
   L.push(`Primeira resposta: mediana ${n(t.medianaMin)} min · p90 ${n(t.p90Min)} min · até 5 min ${n(t.pctAte5min)}% · mais de 24h ${n(t.pctMais24h)}%`)
   L.push(`Aguardando resposta agora: ${n(a.aguardandoRespostaMais1h)} há mais de 1h · ${n(a.aguardandoRespostaMais24h)} há mais de 24h`, '')
   L.push('## Tarefas', '', `Abertas ${n(m.tarefas.abertas)} · atrasadas ${n(m.tarefas.atrasadas)} (${n(m.tarefas.atrasadasMais30d)} há mais de 30 dias) · leads abertos sem tarefa ${n(m.tarefas.leadsAbertosSemTarefa)} (${n(m.tarefas.pctLeadsAbertosSemTarefa)}%)`, '')
-  L.push('## Perdas', '', `${n(m.perdas.total)} perdidos · ${n(m.perdas.pctComMotivo)}% com motivo · motivo obrigatório: ${m.perdas.motivoObrigatorioLigado ? 'sim' : 'não'}`, '')
+  L.push('## Perdas', '', `${n(m.perdas.leads)} leads perdidos · motivo em "${m.perdas.campoDeMotivo}" · ${n(m.perdas.pctComMotivo)}% com motivo`, '')
+  for (const x of m.perdas.fechamentosEmMassa) L.push(`- fechamento em massa em ${x.dia}: ${n(x.perdas)} perdas`)
   for (const [k, c] of m.perdas.porMotivo) L.push(`- ${k}: ${c}`)
   const q = m.qualidade
   L.push('', '## Qualidade de dados', '', `Abertos sem contato ${n(q.abertosSemContato)} · sem valor ${n(q.abertosSemValor)} (${n(q.pctAbertosSemValor)}%) · nome genérico ${n(q.abertosComNomeGenerico)} · responsável inativo ${n(q.abertosComResponsavelInativo)}`)
@@ -501,7 +581,7 @@ function resumo(m) {
 
 // ───────────────────────────── main ─────────────────────────────
 
-const dados = await coletar()
+const dados = SO_ANALISE ? carregar() : await coletar()
 const metricas = analisar(dados)
 fs.writeFileSync(path.join(SAIDA, 'metricas.json'), JSON.stringify(metricas, null, 2))
 fs.writeFileSync(path.join(SAIDA, 'resumo.md'), resumo(metricas))

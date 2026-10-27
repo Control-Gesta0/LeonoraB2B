@@ -15,7 +15,7 @@ Precisa de Node 22+. Sem dependências.
 | Variável | Padrão | Para quê |
 |---|---|---|
 | `KOMMO_TOKEN` / `KOMMO_TOKEN_FILE` | | token de longa duração (eyJ...) |
-| `KOMMO_DOMAIN` | `api_domain` do token | `https://<conta>.kommo.com` se o padrão não responder |
+| `KOMMO_DOMAIN` | descoberto pelo token | `https://<conta>.kommo.com`, para forçar o domínio |
 | `DIAS` | 90 | janela de análise |
 | `HORARIO` | `8-18` | horário comercial (seg a sex, fuso da conta) |
 | `SAIDA` | `auditoria/saida` | pasta de saída |
