@@ -12,6 +12,8 @@ KOMMO_TOKEN=eyJ... node auditoria/auditoria-kommo.mjs
 
 Precisa de Node 22+. Sem dependências.
 
+Para refazer só a análise sobre o que já foi baixado em `saida/bruto/`, sem chamar a API: `node auditoria/auditoria-kommo.mjs --so-analise`.
+
 | Variável | Padrão | Para quê |
 |---|---|---|
 | `KOMMO_TOKEN` / `KOMMO_TOKEN_FILE` | | token de longa duração (eyJ...) |
