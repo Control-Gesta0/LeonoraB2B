@@ -1,0 +1,525 @@
+<title>Retrofit Comercial Leonora B2B</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: proposta de consultoria em coluna de leitura (~920px), mesma identidade da auditoria de 27/10,
+   com diagrama de arquitetura em três colunas, tabela de troca das automações e cronograma em semanas. */
+:root {
+  --bg: #F6F7F9;
+  --surface: #FFFFFF;
+  --ink: #17202C;
+  --ink-2: #455163;
+  --muted: #6A7484;
+  --line: #E1E5EB;
+  --band: #EEF1F5;
+  --brand: #27486F;
+  --brand-soft: #E6EDF6;
+  --accent: #EF4E22;
+  --bar: #2563AB;
+  --good: #1D7A4C; --good-bg: #E5F4EC;
+  --warn: #8F5300; --warn-bg: #FBF0DC;
+  --bad: #B42318;  --bad-bg: #FBE7E5;
+  --chat: #DCF4E3;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F141B; --surface: #141A22; --ink: #E7EBF1; --ink-2: #B6C0CD; --muted: #8B95A4;
+    --line: #253041; --band: #1B2330; --brand: #93B4DC; --brand-soft: #1A2738; --accent: #FF7A4F; --bar: #4F8BD6;
+    --good: #5BCB95; --good-bg: #12291F; --warn: #E8AE4A; --warn-bg: #2D2312; --bad: #F2796A; --bad-bg: #331815;
+    --chat: #17352A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F141B; --surface: #141A22; --ink: #E7EBF1; --ink-2: #B6C0CD; --muted: #8B95A4;
+  --line: #253041; --band: #1B2330; --brand: #93B4DC; --brand-soft: #1A2738; --accent: #FF7A4F; --bar: #4F8BD6;
+  --good: #5BCB95; --good-bg: #12291F; --warn: #E8AE4A; --warn-bg: #2D2312; --bad: #F2796A; --bad-bg: #331815;
+  --chat: #17352A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 920px; margin: 0 auto; }
+h1, h2, h3, h4 { font-family: var(--font-display); color: var(--ink); text-wrap: balance; margin: 0; }
+h2 { font-size: 1.65rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.12rem; font-weight: 600; }
+h4 { font-size: 1rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--brand); text-underline-offset: 2px; }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.mono { font-family: var(--font-data); font-size: 0.86em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.92rem; }
+
+.masthead { padding-block: 32px 24px; display: grid; gap: 20px; border-bottom: 1px solid var(--line); }
+.logo { display: inline-flex; background: #FFFFFF; border-radius: 8px; padding: 8px 12px; width: fit-content; }
+.logo img { height: 34px; width: auto; display: block; }
+.eyebrow { font-family: var(--font-data); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.masthead h1 { font-size: clamp(2.2rem, 6vw, 3.2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+.masthead h1 span { color: var(--brand); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--ink-2); font-size: 0.95rem; }
+
+.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-left, 0px)); }
+.toc ol { list-style: none; margin: 0 auto; padding: 0; max-width: 920px; display: flex; gap: 6px 18px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.toc a { text-decoration: none; color: var(--ink-2); font-size: 0.93rem; font-weight: 600; }
+.toc a:hover { color: var(--brand); }
+
+section { padding-block: 44px 8px; display: grid; gap: 18px; }
+section > p, .prose { max-width: 70ch; color: var(--ink-2); }
+.lead { font-size: 1.12rem; color: var(--ink); max-width: 70ch; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.card p { color: var(--ink-2); font-size: 0.97rem; }
+.card .big { font-weight: 700; font-size: 1.5rem; line-height: 1.1; color: var(--ink); }
+
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--ink-2); font-size: 0.84rem; background: var(--band); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.grp td { background: var(--band); font-weight: 600; color: var(--ink-2); font-size: 0.84rem; }
+td.nowrap { white-space: nowrap; }
+
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 9px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; border: 1px solid transparent; }
+.chip.ia { color: var(--brand); background: var(--brand-soft); }
+.chip.code { color: var(--ink-2); background: var(--band); border-color: var(--line); }
+.chip.time { color: var(--good); background: var(--good-bg); }
+.chip.fica { color: var(--warn); background: var(--warn-bg); }
+.chip.sai { color: var(--bad); background: var(--bad-bg); }
+
+/* jornada */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; counter-reset: passo; }
+.flow li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; position: relative; padding-bottom: 18px; }
+.flow li::before { counter-increment: passo; content: counter(passo); width: 34px; height: 34px; border-radius: 50%; background: var(--brand); color: var(--surface); font-family: var(--font-display); font-weight: 700; display: grid; place-items: center; font-size: 0.95rem; }
+.flow li:not(:last-child)::after { content: ""; position: absolute; left: 16px; top: 38px; bottom: 2px; width: 2px; background: var(--line); }
+.flow .head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 3px; }
+.flow p { color: var(--ink-2); font-size: 0.97rem; max-width: 66ch; }
+
+/* arquitetura */
+.arch { display: grid; grid-template-columns: 1fr 1.35fr 1fr; gap: 10px; align-items: stretch; }
+.arch .col { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.arch .col > .label { font-family: var(--font-data); font-size: 0.75rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.node { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 0.93rem; color: var(--ink-2); min-width: 0; }
+.node b { display: block; color: var(--ink); font-family: var(--font-display); font-weight: 600; font-size: 0.97rem; }
+.motor { background: var(--brand-soft); border: 1.5px solid var(--brand); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+.motor > .title { font-family: var(--font-display); font-weight: 700; color: var(--brand); font-size: 1.02rem; }
+.motor .node { background: var(--surface); }
+.arrow { display: none; }
+.base { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+@media (min-width: 761px) {
+  .arch .col.in .node, .arch .col.out .node { position: relative; }
+}
+@media (max-width: 760px) {
+  .arch { grid-template-columns: 1fr; }
+  .arrow { display: block; text-align: center; color: var(--muted); font-size: 1.3rem; line-height: 1; }
+}
+
+/* cronograma */
+.gantt { display: grid; grid-template-columns: minmax(0, 13rem) repeat(12, minmax(0, 1fr)); gap: 6px 2px; align-items: center; font-size: 0.88rem; min-width: 560px; }
+.gantt .wk { font-family: var(--font-data); font-size: 0.72rem; color: var(--muted); text-align: center; }
+.gantt .name { color: var(--ink); font-weight: 600; padding-right: 8px; }
+.gantt .barra { height: 16px; background: var(--bar); border-radius: 4px; }
+.gantt .barra.cont { background: repeating-linear-gradient(45deg, var(--bar) 0 6px, transparent 6px 10px); border: 1px solid var(--bar); }
+.ganttbox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+
+/* fases */
+.phase { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; }
+.phase header { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.phase header h3 { font-size: 1.15rem; }
+.phase .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px 18px; }
+.phase .cols div { display: grid; gap: 4px; align-content: start; }
+.phase .cols span.k { font-family: var(--font-data); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.phase ul { margin: 0; padding-left: 1.05rem; color: var(--ink-2); font-size: 0.95rem; display: grid; gap: 3px; }
+
+/* método */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; counter-reset: s; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; align-content: start; }
+.steps li::before { counter-increment: s; content: counter(s); font-family: var(--font-display); font-weight: 700; color: var(--brand); font-size: 1.3rem; line-height: 1; }
+.steps li b { color: var(--ink); }
+.steps li span { color: var(--ink-2); font-size: 0.92rem; }
+
+/* painéis */
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.panel .sub { color: var(--muted); font-size: 0.88rem; }
+.bubble { background: var(--chat); border-radius: 10px 10px 10px 2px; padding: 10px 12px; font-size: 0.9rem; color: var(--ink); white-space: pre-line; line-height: 1.45; }
+.mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mini div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px; }
+.mini .v { font-weight: 700; font-size: 1.3rem; line-height: 1.1; color: var(--ink); }
+.mini .l { font-size: 0.8rem; color: var(--ink-2); }
+.mini .st { font-size: 0.72rem; font-weight: 700; }
+.mini .st.bad { color: var(--bad); } .mini .st.warn { color: var(--warn); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs span { font-size: 0.8rem; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; color: var(--ink-2); }
+
+.callout { border-left: 3px solid var(--accent); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; color: var(--ink-2); max-width: 74ch; }
+.callout strong { color: var(--ink); }
+ol.decisoes { margin: 0; padding-left: 1.3rem; display: grid; gap: 10px; color: var(--ink-2); max-width: 74ch; }
+ol.decisoes li::marker { color: var(--brand); font-weight: 700; font-family: var(--font-display); }
+ol.decisoes b { color: var(--ink); }
+ul.clean { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(--ink-2); max-width: 72ch; }
+footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; display: grid; gap: 6px; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <span class="logo"><img src="logo-control-gestao.png" alt="Control Gestão"></span>
+    <div style="display:grid;gap:10px">
+      <span class="eyebrow">Proposta de retrofit · processo comercial e automações</span>
+      <h1>Leonora <span>B2B</span></h1>
+    </div>
+    <div class="meta">
+      <span>Versão para discussão · 29/10/2026</span>
+      <span>Base: auditoria de 27/10 e registros de automação dos últimos 30 dias</span>
+      <span class="mono">leonorab2b.kommo.com</span>
+    </div>
+  </header>
+</div>
+
+<nav class="toc" aria-label="Seções">
+  <ol>
+    <li><a href="#proposta">A proposta</a></li>
+    <li><a href="#hoje">O que roda hoje</a></li>
+    <li><a href="#processo">Processo novo</a></li>
+    <li><a href="#arquitetura">Arquitetura</a></li>
+    <li><a href="#troca">Troca das automações</a></li>
+    <li><a href="#paineis">Painéis</a></li>
+    <li><a href="#fases">Fases</a></li>
+    <li><a href="#placar">Placar e prova</a></li>
+    <li><a href="#decisoes">Decisões</a></li>
+    <li><a href="#riscos">Riscos</a></li>
+  </ol>
+</nav>
+
+<main class="wrap">
+
+<section id="proposta">
+  <h2>A proposta</h2>
+  <p class="lead">Hoje a operação comercial da Leonora depende de automações espalhadas entre Salesbots, Digital Pipeline e widgets de terceiros. Elas fazem muito trabalho, mas ninguém consegue ver de uma vez o que cada uma faz, testar antes de mudar ou voltar atrás quando algo quebra. A proposta é tirar as regras de dentro do Kommo e colocá-las num motor próprio, com código no GitHub, rodando na Vercel, com IA nas conversas e painéis que mostram o que pede decisão. A equipe continua trabalhando no Kommo.</p>
+
+  <div class="grid2">
+    <div class="card"><h3>O Kommo vira cadastro e tela de trabalho</h3><p>Funis, cards, chat e tarefas continuam onde a equipe já está. O que sai do Kommo são as regras: quem recebe o lead, quando criar tarefa, para onde o card vai.</p></div>
+    <div class="card"><h3>Toda regra vira código com teste</h3><p>Cada regra fica escrita no repositório do projeto. Mudar uma regra passa por revisão e teste automático, fica registrado quem mudou e quando, e volta ao estado anterior num clique.</p></div>
+    <div class="card"><h3>IA onde a conversa precisa de leitura</h3><p>Triagem no WhatsApp, leitura de intenção do cliente da base, resumo do card e mensagens de retomada. Distribuição, prazos e tarefas são regra fixa, sem IA, porque precisam dar o mesmo resultado toda vez.</p></div>
+    <div class="card"><h3>Nada é desligado sem prova</h3><p>Cada automação nova roda primeiro em modo sombra, ao lado da antiga, registrando o que faria. Só depois de comparar as duas a antiga é desativada, e fica guardada por 30 dias para voltar se for preciso.</p></div>
+  </div>
+</section>
+
+<section id="hoje">
+  <h2>O que roda hoje</h2>
+  <p>Este inventário foi montado pelos registros que a API da Kommo guarda de cada ação automática. Salesbots e regras do Digital Pipeline não podem ser lidos pela API, então a primeira semana do projeto confirma cada item na tela da conta.</p>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Automação</th><th>Onde roda</th><th class="r">Volume</th><th>O que acontece por causa dela</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="4">Entrada e conversa</td></tr>
+        <tr><td>Criação do lead pela primeira mensagem</td><td>Kommo</td><td class="r">1.125 / 30 d</td><td>Funciona. A origem fica só em tag (site, Meta, instagram) e o campo Origem sai vazio em 74% dos leads.</td></tr>
+        <tr><td>Robô de boas-vindas e qualificação</td><td>Salesbot</td><td class="r">4.780 msgs / 30 d<br><span class="muted small">todos os robôs</span></td><td>Perguntas fixas. 2.099 leads ficaram presos em "PAROU NO BOT" e os campos de qualificação ficam vazios em 94% dos leads.</td></tr>
+        <tr><td>Aviso fora do horário</td><td>Salesbot</td><td class="r">134 / 30 d</td><td>Marca a tag e manda o aviso. Um quarto dessas conversas espera mais de 8 horas pela primeira resposta.</td></tr>
+        <tr><td>Encerramento automático de conversa</td><td>Kommo</td><td class="r">1.357 / 30 d</td><td>Fecha a conversa no chat. Precisamos conferir se fecha conversas que ainda esperam resposta (hoje são 447 nessa situação).</td></tr>
+        <tr class="grp"><td colspan="4">Distribuição e tarefas</td></tr>
+        <tr><td>Rodízio e redistribuição após 1 a 2 horas</td><td>Widget Leads Distribution (Komanda)</td><td class="r">3.402 trocas / 30 d</td><td>Distribui, mas 10.383 leads abertos estão com o "Adm" ou com usuários desativados.</td></tr>
+        <tr><td>Tarefas automáticas ("Novo atendimento", "Cliente novo qualificado pelo bot", "Cliente da base interagindo", "Lead entrou no período de feira")</td><td>Digital Pipeline</td><td class="r">1.991 / 30 d</td><td>Uma tarefa para cada evento, com ou sem ação real. 88% das tarefas abertas estão vencidas.</td></tr>
+        <tr><td>Aviso de lead parado há 5, 15 e 30 dias</td><td>Digital Pipeline</td><td class="r">92 / 90 d</td><td>Vira mais uma tarefa na pilha. Metade dos leads abertos está parada há mais de um mês.</td></tr>
+        <tr class="grp"><td colspan="4">Movimento no funil</td></tr>
+        <tr><td>Entrada (CNPJ) → Região → Distribuição</td><td>Digital Pipeline</td><td class="r">2.555 / 64 d</td><td>Funciona. 548 leads antigos ficaram presos na primeira etapa.</td></tr>
+        <tr><td>Venda ganha volta para "Base de clientes"</td><td>Digital Pipeline</td><td class="r">515 / 64 d</td><td>O mesmo lead é reaproveitado a cada pedido, e o valor e a data do pedido anterior se perdem.</td></tr>
+        <tr><td>Cliente da base escreveu → interagindo, Demanda identificada ou Pré-Vendas</td><td>Digital Pipeline</td><td class="r">825 / 64 d</td><td>Toda mensagem vira o mesmo movimento, seja pedido novo, rastreio, SAC ou financeiro.</td></tr>
+        <tr><td>Lead perdido escreveu → reabre em Pré-Vendas</td><td>Digital Pipeline</td><td class="r">476 / 64 d</td><td>O lead volta para a fila de entrada sem o contexto da perda.</td></tr>
+        <tr><td>Nutrição D0 a D12, disparos 1 a 4 e repescagem do bot</td><td>Salesbot e Digital Pipeline</td><td class="r">parados</td><td>4.616 leads abertos nesses funis, a maioria sem movimento há mais de um ano.</td></tr>
+        <tr class="grp"><td colspan="4">Dados e integrações</td></tr>
+        <tr><td>Limite de crédito, última compra, nível do cliente e categoria</td><td>Integração LeoSales e Qlik</td><td class="r">~1.000 campos / dia</td><td>Dado valioso que hoje não aciona nada. 1.188 clientes já passaram do prazo de compra do próprio nível.</td></tr>
+        <tr><td>Carrinho abandonado do site</td><td>Integração do site</td><td class="r">~6 / dia</td><td>Preenche link, valor e e-mail no card e o lead segue para o atendimento manual, como qualquer outro.</td></tr>
+        <tr><td>Unificação de duplicatas</td><td>Dois widgets ao mesmo tempo</td><td class="r">542 / 90 d</td><td>Ainda há 7.436 telefones repetidos em mais de um contato.</td></tr>
+        <tr><td>Webhook para api.roydis.tech</td><td>Externo</td><td class="r">ativo</td><td>Recebe novos leads, alterações e entradas. Precisamos confirmar com a Leonora o que ele faz.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">No total, 35% das mudanças de etapa da conta são feitas por automação. Volumes contados pelos registros da API; "64 d" e "90 d" indicam o período coberto pelos registros disponíveis.</p>
+</section>
+
+<section id="processo">
+  <h2>O processo novo</h2>
+  <p>A jornada fica com seis passos. Em cada um está quem faz: a IA, uma regra do motor ou a equipe.</p>
+  <ol class="flow">
+    <li><div><div class="head"><h4>Entrada</h4><span class="chip code">Regra</span></div><p>Toda mensagem chega ao motor. Ele acha o card certo (ou cria), junta duplicatas pelo telefone e pelo CNPJ e grava a origem e a campanha no campo, a partir do link ou do número de onde o cliente veio.</p></div></li>
+    <li><div><div class="head"><h4>Triagem no WhatsApp, 24 horas</h4><span class="chip ia">IA</span></div><p>A assistente responde em segundos, entende se é lojista com CNPJ, cliente da base, consumidor final, SAC ou financeiro, e responde as dúvidas de política (pedido mínimo, frete, formas de pagamento, cadastro). Grava CNPJ, UF, tipo de loja, interesse e potencial no card. Lê áudio, foto e PDF.</p></div></li>
+    <li><div><div class="head"><h4>Distribuição com prazo</h4><span class="chip code">Regra</span></div><p>Cliente da base vai para o vendedor da carteira. Lead novo vai para SDR ou consultor pela região e pela carga de cada um. Se ninguém responder em 15 minutos no horário comercial, o gestor recebe um alerta antes da redistribuição.</p></div></li>
+    <li><div><div class="head"><h4>Atendimento da equipe</h4><span class="chip time">Equipe</span></div><p>O card chega com um resumo da conversa e o próximo passo sugerido. SDR qualifica, consultor faz levantamento, orçamento e negociação. Tarefa só aparece quando existe uma ação para alguém, sempre com dono e prazo. Valor obrigatório a partir do orçamento.</p></div></li>
+    <li><div><div class="head"><h4>Pedido</h4><span class="chip time">Equipe</span><span class="chip code">Regra</span></div><p>Cada pedido ganho é um lead próprio, com valor e data. O histórico do cliente fica no contato e na empresa. A análise de crédito e o pós-venda (rastreio, SAC, financeiro) seguem para quem cuida de cada assunto.</p></div></li>
+    <li><div><div class="head"><h4>Recompra e retomada</h4><span class="chip code">Regra</span><span class="chip ia">IA</span></div><p>Quando a última compra passa do intervalo do nível do cliente no Qlik, o motor cria o lead de recompra para o vendedor da carteira, com a categoria que ele mais compra. Lead que parou de responder recebe uma sequência de mensagens com regra de quantas tentativas fazer antes de perder. "Venda futura" vira data de retorno.</p></div></li>
+  </ol>
+  <div class="callout"><strong>Até onde a IA vai:</strong> ela atende, qualifica e entrega. Preço especial, aprovação de crédito, negociação e fechamento ficam com a equipe. A qualquer momento um vendedor assume a conversa e a IA para naquele cliente.</div>
+</section>
+
+<section id="arquitetura">
+  <h2>Arquitetura</h2>
+  <p>O motor recebe tudo o que acontece no WhatsApp e no Kommo, decide com regra ou com IA e escreve de volta no Kommo. Os painéis leem o mesmo motor.</p>
+
+  <div class="arch">
+    <div class="col in">
+      <span class="label">Entradas</span>
+      <div class="node"><b>WhatsApp de atendimento</b>conversas dos clientes</div>
+      <div class="node"><b>WhatsApp oficial (Meta)</b>disparos com modelo aprovado</div>
+      <div class="node"><b>Site e formulários</b>botão do site, carrinho abandonado</div>
+      <div class="node"><b>LeoSales e Qlik</b>crédito, última compra, nível</div>
+      <div class="node"><b>Kommo</b>avisos de card criado, movido ou alterado</div>
+    </div>
+    <div class="arrow" aria-hidden="true">↓</div>
+    <div class="motor">
+      <span class="title">Motor Leonora · Vercel</span>
+      <div class="node"><b>Atendimento</b>recebe mensagens, guarda o histórico da conversa e responde pela assistente</div>
+      <div class="node"><b>Regras do funil</b>entrada, distribuição, prazos, tarefas, pedido, reabertura, recompra, limpeza</div>
+      <div class="node"><b>Rotinas agendadas</b>checagem diária do Kommo, briefing das 7h, relatório semanal</div>
+      <div class="node"><b>Diário de execuções</b>cada ação registrada com horário, motivo, resultado e custo</div>
+    </div>
+    <div class="arrow" aria-hidden="true">↓</div>
+    <div class="col out">
+      <span class="label">Saídas</span>
+      <div class="node"><b>Kommo</b>card, etapa, campos, responsável, tarefa e nota com resumo</div>
+      <div class="node"><b>WhatsApp</b>respostas da assistente e mensagens de retomada</div>
+      <div class="node"><b>Painel de gestão</b>funis, prazos, carteira e recompra ao vivo</div>
+      <div class="node"><b>Central de IA</b>o que a assistente fez, custo, teste e correções</div>
+      <div class="node"><b>Briefing no WhatsApp</b>placar do dia anterior e três ações</div>
+    </div>
+  </div>
+  <div class="base">
+    <div class="node"><b>GitHub</b>código de todas as regras, testes e histórico de cada mudança</div>
+    <div class="node"><b>Vercel</b>prévia de cada mudança antes de ir ao ar e publicação com um clique</div>
+    <div class="node"><b>Upstash Redis</b>histórico das conversas, filas e travas contra ação repetida</div>
+    <div class="node"><b>Modelos de IA</b>OpenAI ou Anthropic, escolhidos por teste comparativo</div>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>Hoje (Salesbot, Digital Pipeline, widgets)</th><th>Motor no GitHub e na Vercel</th></tr></thead>
+      <tbody>
+        <tr><td>Onde está a regra</td><td>Espalhada em telas diferentes do Kommo e de cada widget</td><td>Num só lugar, escrita e legível</td></tr>
+        <tr><td>Antes de mudar</td><td>Muda direto na conta em uso</td><td>Teste automático e prévia antes de publicar</td></tr>
+        <tr><td>Histórico</td><td>Não há registro de quem mudou o quê</td><td>Cada mudança tem autor, data e motivo</td></tr>
+        <tr><td>Quando algo quebra</td><td>Descobre pelo cliente reclamando</td><td>Checagem diária e alerta no grupo na hora</td></tr>
+        <tr><td>Voltar atrás</td><td>Refazer à mão</td><td>Volta para a versão anterior num clique</td></tr>
+        <tr><td>Conversa</td><td>Menu de perguntas fixas</td><td>Assistente que entende texto, áudio, foto e PDF</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout"><strong>Decisão de canal.</strong> A API da Kommo não envia mensagem de WhatsApp. Para o motor responder existem dois caminhos. No primeiro, os números continuam conectados no Kommo e um único Salesbot de envio entrega o que o motor escreve: é a única automação nativa que fica, com uma mensagem por resposta e sem áudio. No segundo, os números de atendimento passam a ser conectados pela Stevo, integrada ao Kommo: a equipe continua respondendo pelo Kommo e o motor envia direto, com várias mensagens, áudio e status de conexão no painel. Recomendamos o segundo para os números de atendimento e o WhatsApp oficial da Meta para disparos. Hoje 92% das conversas já passam pelo WhatsApp Lite do Kommo, conectado por QR code. A Stevo também conecta por QR code, então o risco do canal continua o mesmo de hoje.</div>
+</section>
+
+<section id="troca">
+  <h2>Troca das automações</h2>
+  <p>Cada automação atual tem um destino: vira regra no motor, vira IA, continua como está ou é desligada.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Hoje</th><th>No retrofit</th><th>Como</th><th>Fase</th></tr></thead>
+      <tbody>
+        <tr><td>Robô de boas-vindas e qualificação</td><td>Assistente de triagem que grava os campos e entrega com resumo</td><td><span class="chip ia">IA</span></td><td class="nowrap">3</td></tr>
+        <tr><td>Aviso fora do horário</td><td>Atendimento 24 horas pela assistente, humano assume às 8h com resumo</td><td><span class="chip ia">IA</span></td><td class="nowrap">3</td></tr>
+        <tr><td>Tags de origem</td><td>Campo Origem e campanha gravados pelo link ou número de entrada</td><td><span class="chip code">Regra</span></td><td class="nowrap">2</td></tr>
+        <tr><td>Widget de distribuição Komanda</td><td>Distribuição por carteira, região e carga, com alerta de prazo antes de redistribuir</td><td><span class="chip code">Regra</span> <span class="chip sai">sai</span></td><td class="nowrap">2</td></tr>
+        <tr><td>Tarefas automáticas por evento</td><td>Tarefa só com ação real, para o dono real; fila "o que fazer agora" no painel</td><td><span class="chip code">Regra</span></td><td class="nowrap">2</td></tr>
+        <tr><td>Avisos de lead parado</td><td>Painel, briefing das 7h e alerta ao gestor</td><td><span class="chip code">Regra</span></td><td class="nowrap">1</td></tr>
+        <tr><td>Movimento por região</td><td>Regra por UF e CNPJ, com teste</td><td><span class="chip code">Regra</span></td><td class="nowrap">2</td></tr>
+        <tr><td>Venda ganha volta para a base</td><td>Um lead por pedido; cliente fica no contato e na empresa</td><td><span class="chip code">Regra</span></td><td class="nowrap">2</td></tr>
+        <tr><td>Cliente da base escreveu</td><td>Leitura da intenção (pedido, rastreio, SAC, financeiro) e encaminhamento certo</td><td><span class="chip ia">IA</span></td><td class="nowrap">3</td></tr>
+        <tr><td>Lead perdido reabre</td><td>Regra pelo motivo e pelo tempo da perda: reabre, cria novo ou vai para a carteira</td><td><span class="chip code">Regra</span></td><td class="nowrap">2</td></tr>
+        <tr><td>Nutrição, disparos e repescagem parados</td><td>Limpeza com motivo próprio e retomada nova com regra de tentativas</td><td><span class="chip code">Regra</span> <span class="chip ia">IA</span></td><td class="nowrap">2 e 3</td></tr>
+        <tr><td>Dois widgets de duplicidade</td><td>Unificação no motor por telefone e CNPJ</td><td><span class="chip code">Regra</span> <span class="chip sai">sai</span></td><td class="nowrap">2</td></tr>
+        <tr><td>Integração LeoSales e Qlik</td><td>Continua; passa a acionar recompra e crédito</td><td><span class="chip fica">fica</span></td><td class="nowrap">3</td></tr>
+        <tr><td>Carrinho abandonado</td><td>Retomada automática com mensagem e prazo</td><td><span class="chip code">Regra</span> <span class="chip ia">IA</span></td><td class="nowrap">3</td></tr>
+        <tr><td>Encerramento automático de conversa</td><td>Avaliado na Fase 0; só fecha conversa já respondida</td><td><span class="chip fica">revisar</span></td><td class="nowrap">0</td></tr>
+        <tr><td>Stripe, PayPal e Mercado Pago</td><td>Desligados se a Leonora confirmar que não usa</td><td><span class="chip sai">sai</span></td><td class="nowrap">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Como cada troca acontece</h3>
+  <ol class="steps">
+    <li><b>Escrever</b><span>A regra é escrita no motor com teste automático usando a estrutura real da conta.</span></li>
+    <li><b>Sombra</b><span>Por uma semana o motor só registra o que faria. Comparamos com o que a automação antiga fez.</span></li>
+    <li><b>Parcial</b><span>Liga para um grupo: uma tag, uma região ou um vendedor.</span></li>
+    <li><b>Virada</b><span>Liga para todos e desativa a antiga, sem apagar.</span></li>
+    <li><b>Limpeza</b><span>Depois de 30 dias sem volta, a automação antiga é removida.</span></li>
+  </ol>
+</section>
+
+<section id="paineis">
+  <h2>Painéis</h2>
+  <p>Cada painel responde uma pergunta. Os números nos exemplos abaixo são os da conta em 27/10.</p>
+  <div class="panels">
+    <div class="panel">
+      <h3>Briefing das 7h</h3>
+      <span class="sub">No WhatsApp do gestor, todo dia útil. Responde "o que eu faço hoje?"</span>
+      <div class="bubble">Bom dia. Ontem (26/10) entraram 56 leads e foram marcadas 10 vendas.
+Precisa de você hoje:
+1. 181 clientes esperando resposta há mais de 24h. Os que mais pesam estão com Ismael (62) e Jessica (40).
+2. 147 clientes da base na janela de recompra, 11 deles Diamante.
+3. Funil de consultores com 431 leads abertos e só 81 com valor.</div>
+      <span class="sub">Exemplo montado com os números de 26 e 27/10. No briefing de verdade os números são calculados em código e a IA só escreve o texto.</span>
+    </div>
+    <div class="panel">
+      <h3>Painel de gestão ao vivo</h3>
+      <span class="sub">Responde "onde está travando agora?"</span>
+      <div class="mini">
+        <div><span class="v">181</span><span class="l">esperando resposta há mais de 24h</span><span class="st bad">crítico</span></div>
+        <div><span class="v">919</span><span class="l">tarefas vencidas</span><span class="st bad">crítico</span></div>
+        <div><span class="v">10.383</span><span class="l">leads sem dono ativo</span><span class="st bad">crítico</span></div>
+        <div><span class="v">1.188</span><span class="l">clientes da base com recompra vencida</span><span class="st warn">atenção</span></div>
+      </div>
+      <div class="tabs"><span>Início</span><span>Pré-Vendas</span><span>Consultores</span><span>Clientes da base</span><span>Carteira por vendedor</span><span>IA e operação</span></div>
+      <span class="sub">Uma aba por funil, com cards por etapa, dias sem movimento e lista do mais parado para o mais recente. Atualiza a cada 90 segundos.</span>
+    </div>
+    <div class="panel">
+      <h3>Central de IA</h3>
+      <span class="sub">Responde "a assistente está indo bem e quanto custou?"</span>
+      <div class="tabs"><span>Estatísticas</span><span>Teste</span><span>Ensinar</span><span>Como usar</span></div>
+      <p class="small" style="color:var(--ink-2)">Mostra o que ela respondeu, quando passou para a equipe e o custo de cada conversa. Na aba Teste a equipe conversa com ela sem afetar o Kommo. Na aba Ensinar a Leonora pede correções em português; a mudança só vai ao ar depois de passar no exame de qualidade.</p>
+    </div>
+    <div class="panel">
+      <h3>Placar quinzenal</h3>
+      <span class="sub">Responde "melhorou desde que começamos?"</span>
+      <p class="small" style="color:var(--ink-2)">A cada 15 dias, placar de antes e agora com os indicadores da seção seguinte, um gargalo, o que a Control Gestão fará e o que a Leonora fará. A base de comparação é a auditoria de 27/10.</p>
+    </div>
+  </div>
+</section>
+
+<section id="fases">
+  <h2>Fases</h2>
+  <p>Dez semanas até a IA atender todos os leads. A operação não para em nenhuma fase.</p>
+  <div class="ganttbox">
+    <div class="gantt" role="img" aria-label="Cronograma: Fase 0 na semana 1, Fase 1 nas semanas 2 e 3, Fase 2 nas semanas 3 a 6, Fase 3 nas semanas 6 a 10, Fase 4 a partir da semana 10">
+      <span></span>
+      <span class="wk">1</span><span class="wk">2</span><span class="wk">3</span><span class="wk">4</span><span class="wk">5</span><span class="wk">6</span><span class="wk">7</span><span class="wk">8</span><span class="wk">9</span><span class="wk">10</span><span class="wk">11</span><span class="wk">12</span>
+      <span class="name" style="grid-row: 2; grid-column: 1">0 · Inventário e decisões</span><span class="barra" style="grid-row: 2; grid-column: 2 / 3"></span>
+      <span class="name" style="grid-row: 3; grid-column: 1">1 · Fundação e painéis</span><span class="barra" style="grid-row: 3; grid-column: 3 / 5"></span>
+      <span class="name" style="grid-row: 4; grid-column: 1">2 · Regras no motor</span><span class="barra" style="grid-row: 4; grid-column: 4 / 8"></span>
+      <span class="name" style="grid-row: 5; grid-column: 1">3 · IA nas conversas</span><span class="barra" style="grid-row: 5; grid-column: 7 / 12"></span>
+      <span class="name" style="grid-row: 6; grid-column: 1">4 · Melhoria contínua</span><span class="barra cont" style="grid-row: 6; grid-column: 11 / 14"></span>
+    </div>
+  </div>
+
+  <div class="phase">
+    <header><h3>Fase 0 · Inventário e decisões</h3><span class="muted small">semana 1</span></header>
+    <div class="cols">
+      <div><span class="k">Entregas</span><ul><li>Cada Salesbot, regra do Digital Pipeline e widget conferido na tela, com destino definido</li><li>Foto do antes congelada (auditoria de 27/10)</li><li>Decisões da seção "Decisões" registradas</li></ul></div>
+      <div><span class="k">Desliga</span><ul><li>Nada</li></ul></div>
+      <div><span class="k">Leonora</span><ul><li>Uma sessão de 1h30 com o administrador da conta</li><li>Aprovar funis, carteira e alçada da IA</li></ul></div>
+    </div>
+  </div>
+  <div class="phase">
+    <header><h3>Fase 1 · Fundação e painéis</h3><span class="muted small">semanas 2 e 3</span></header>
+    <div class="cols">
+      <div><span class="k">Entregas</span><ul><li>Motor no ar na Vercel, código no GitHub, checagem diária da estrutura do Kommo</li><li>Painel de gestão ao vivo e briefing das 7h</li><li>Primeiras limpezas: tarefas vencidas, leads sem dono, widgets sem uso</li></ul></div>
+      <div><span class="k">Desliga</span><ul><li>Avisos de lead parado (o painel e o briefing assumem)</li><li>Widgets de pagamento sem uso</li></ul></div>
+      <div><span class="k">Leonora</span><ul><li>Gestor passa a usar o briefing e o painel</li></ul></div>
+    </div>
+  </div>
+  <div class="phase">
+    <header><h3>Fase 2 · Regras no motor</h3><span class="muted small">semanas 3 a 6</span></header>
+    <div class="cols">
+      <div><span class="k">Entregas</span><ul><li>Funis de 28 para 7, com limpeza registrada como "Limpeza de base"</li><li>Entrada, origem, duplicatas, distribuição com prazo e tarefas no motor</li><li>Um lead por pedido e regra de reabertura</li></ul></div>
+      <div><span class="k">Desliga</span><ul><li>Widget de distribuição, widgets de duplicidade, tarefas automáticas e movimentos do Digital Pipeline, cada um depois da semana em sombra</li></ul></div>
+      <div><span class="k">Leonora</span><ul><li>Validar a semana em sombra de cada regra</li><li>Integração LeoSales enviando os pedidos</li></ul></div>
+    </div>
+  </div>
+  <div class="phase">
+    <header><h3>Fase 3 · IA nas conversas</h3><span class="muted small">semanas 6 a 10</span></header>
+    <div class="cols">
+      <div><span class="k">Entregas</span><ul><li>Assistente de triagem: primeiro fora do horário, depois 10 leads marcados, depois todos</li><li>Resumo no card, leitura de intenção da base, recompra e retomada com mensagem</li><li>Central de IA com teste e correções</li></ul></div>
+      <div><span class="k">Desliga</span><ul><li>Robô de boas-vindas, aviso fora do horário e fluxos de nutrição antigos</li></ul></div>
+      <div><span class="k">Leonora</span><ul><li>Política comercial por escrito e 5 a 10 conversas boas da equipe como exemplo de tom</li><li>Testar a assistente na aba Teste antes de cada etapa</li></ul></div>
+    </div>
+  </div>
+  <div class="phase">
+    <header><h3>Fase 4 · Melhoria contínua</h3><span class="muted small">a partir da semana 10</span></header>
+    <div class="cols">
+      <div><span class="k">Entregas</span><ul><li>Relatório semanal com sugestões de melhoria (aplicadas só com aprovação)</li><li>Placar quinzenal e prova com grupo de controle</li></ul></div>
+      <div><span class="k">Desliga</span><ul><li>Remoção definitiva das automações antigas após 30 dias</li></ul></div>
+      <div><span class="k">Leonora</span><ul><li>Reunião quinzenal de 30 minutos</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="placar">
+  <h2>Placar e prova</h2>
+  <p>A auditoria de 27/10 é a foto do antes. Estes são os indicadores que acompanharemos a cada 15 dias.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Indicador</th><th class="r">Hoje</th><th class="r">Meta após a virada</th></tr></thead>
+      <tbody>
+        <tr><td>Conversas com o cliente sem resposta há mais de 24h</td><td class="r">447</td><td class="r">menos de 20</td></tr>
+        <tr><td>Espera fora do horário (um quarto das conversas acima de)</td><td class="r">8h25</td><td class="r">5 min</td></tr>
+        <tr><td>Primeira resposta da equipe no horário (mediana)</td><td class="r">6 min</td><td class="r">5 min</td></tr>
+        <tr><td>Tarefas vencidas</td><td class="r">88%</td><td class="r">menos de 10%</td></tr>
+        <tr><td>Leads abertos sem dono ativo</td><td class="r">10.383</td><td class="r">0</td></tr>
+        <tr><td>Leads novos com origem preenchida</td><td class="r">26%</td><td class="r">95%</td></tr>
+        <tr><td>Campos de qualificação preenchidos</td><td class="r">6%</td><td class="r">80%</td></tr>
+        <tr><td>Clientes da base com recompra vencida e sem contato</td><td class="r">1.188</td><td class="r">0</td></tr>
+        <tr><td>Lead novo que vira pedido, por safra</td><td class="r">20% a 23%</td><td class="r">medido com grupo de controle</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout"><strong>Sobre aumento de vendas.</strong> Não prometemos um percentual antes de medir. A IA entra por etapas e uma parte comparável dos leads (uma região ou dias alternados) segue no fluxo atual por 4 a 6 semanas. A diferença entre os dois grupos é o resultado que vamos apresentar.</div>
+
+  <h3>Custo de operação</h3>
+  <ul class="clean">
+    <li>Infraestrutura (Vercel e Upstash): de R$ 50 a R$ 150 por mês.</li>
+    <li>IA: pelo custo medido em produção na Control Gestão (R$ 0,16 por conversa completa, julho de 2026), as cerca de 2.500 conversas por mês da Leonora custariam em torno de R$ 400 se a assistente atendesse todas. O custo real aparece por conversa na Central.</li>
+    <li>Saem as assinaturas dos widgets substituídos (distribuição, duplicidade e notificações). O valor depende dos planos contratados pela Leonora.</li>
+  </ul>
+</section>
+
+<section id="decisoes">
+  <h2>Decisões que precisamos da Leonora</h2>
+  <ol class="decisoes">
+    <li><b>Canal das conversas.</b> Manter os números conectados no Kommo com um Salesbot de envio, ou passar os números de atendimento para a Stevo. Quantos números existem e quem usa cada um.</li>
+    <li><b>Regra de carteira.</b> Como se decide hoje o vendedor de um cliente: por região, pelo código no LeoSales ou pelo vendedor da última compra. O campo Carteira está vazio em 99% dos clientes que estão com o "Adm".</li>
+    <li><b>Política comercial para a assistente.</b> Pedido mínimo, frete, formas de pagamento, prazo da análise de crédito, regiões atendidas e marcas que ela pode citar.</li>
+    <li><b>Funis finais.</b> Aprovar a redução de 28 para 7 funis e a limpeza com motivo "Limpeza de base".</li>
+    <li><b>Dono do processo.</b> Quem aprova cada virada e participa da reunião quinzenal.</li>
+    <li><b>Integrações.</b> O que faz o webhook para api.roydis.tech e os widgets F5, e se o LeoSales consegue enviar cada pedido (número, valor e data).</li>
+    <li><b>Acesso.</b> Uma sessão com o administrador do Kommo para conferir Salesbots e Digital Pipeline na tela.</li>
+  </ol>
+</section>
+
+<section id="riscos">
+  <h2>Riscos e como tratamos</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Risco</th><th>Como tratamos</th></tr></thead>
+      <tbody>
+        <tr><td>A regra nova se comportar diferente da antiga</td><td>Semana em sombra com comparação, virada parcial e a automação antiga desativada (não apagada) por 30 dias.</td></tr>
+        <tr><td>A assistente responder errado</td><td>Alçada limitada, exame de qualidade antes de cada versão, entrada por etapas e o vendedor pode assumir a qualquer momento.</td></tr>
+        <tr><td>Número de WhatsApp cair ou ser bloqueado</td><td>Status da conexão no painel com alerta. Disparos em massa só pelo WhatsApp oficial da Meta.</td></tr>
+        <tr><td>Mudança na estrutura do Kommo quebrar o motor</td><td>O motor acha funis, etapas e campos pelo nome e confere a estrutura todo dia. Se algo sumir, ele para aquela regra e avisa, em vez de gravar no lugar errado.</td></tr>
+        <tr><td>Limite de chamadas da API da Kommo</td><td>Fila e cache no motor, respeitando o limite de 7 chamadas por segundo.</td></tr>
+        <tr><td>Dependência da Control Gestão</td><td>O código, os testes e a documentação ficam no repositório do projeto, com histórico completo de cada mudança.</td></tr>
+        <tr><td>Equipe não adotar</td><td>O trabalho continua no Kommo. O painel e o briefing entram na Fase 1, antes de qualquer desligamento, e a Central tem a aba Como usar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <span>Control Gestão · Proposta baseada na auditoria de 27/10/2026 (<span class="mono">relatorios/auditoria-kommo-2026-10-27.html</span>) e nos registros de automação da conta de 29/09 a 29/10/2026.</span>
+</footer>
+</main>
